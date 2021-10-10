@@ -1,4 +1,4 @@
-package com.vojtechruzicka.springfoxexample.config;
+package com.phillips.sportsanalytics.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,21 +25,21 @@ public class SpringFoxConfig {
     public Docket apiDocket() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.vojtechruzicka"))
-                .paths(PathSelectors.ant("/v2/**"))
+                .apis(RequestHandlerSelectors.basePackage("com.phillips"))
+                .paths(PathSelectors.ant("/api/**"))
                 .build()
                 .apiInfo(getApiInfo());
     }
 
     private ApiInfo getApiInfo() {
         return new ApiInfo(
-                "SpringFox Demo Application",
+                "NFL Analytics API",
                 "This application demonstrates documenting os Spring Boot app with Swagger using SpringFox.",
                 "1.0.0",
-                "TERMS OF SERVICE URL",
-                new Contact("Vojtech Ruzicka", "http://www.vojtechruzicka.com", "vojtech.ruz@gmail.com"),
-                "MIT License",
-                "LICENSE URL",
+                "",
+                new Contact("William Phillips", "", ""),
+                "",
+                "",
                 Collections.emptyList()
         );
     }

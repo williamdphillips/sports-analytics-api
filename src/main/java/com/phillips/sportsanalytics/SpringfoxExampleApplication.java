@@ -1,5 +1,6 @@
-package com.vojtechruzicka.springfoxexample;
+package com.phillips.sportsanalytics;
 
+import com.phillips.sportsanalytics.util.HTTPConnection;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -7,6 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class SpringfoxExampleApplication {
 
 	public static void main(String[] args) {
+		HTTPConnection.init();
 		SpringApplication.run(SpringfoxExampleApplication.class, args);
 	}
+
 }

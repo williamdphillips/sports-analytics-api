@@ -1,4 +1,4 @@
-package com.vojtechruzicka.springfoxexample;
+package com.phillips.sportsanalytics;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
