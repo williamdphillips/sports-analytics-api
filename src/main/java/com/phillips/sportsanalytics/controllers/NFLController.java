@@ -1,16 +1,14 @@
 package com.phillips.sportsanalytics.controllers;
 
 import com.phillips.sportsanalytics.constant.Team;
-import com.phillips.sportsanalytics.entity.Player;
-import com.phillips.sportsanalytics.entity.Roster;
+import com.phillips.sportsanalytics.response.PlayByPlayResponse;
+import com.phillips.sportsanalytics.response.PlayerResponse;
+import com.phillips.sportsanalytics.response.TeamResponse;
+import com.phillips.sportsanalytics.response.ScoreboardResponse;
 import com.phillips.sportsanalytics.services.NFLService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/nfl")
@@ -19,43 +17,43 @@ public class NFLController {
 
     private NFLService nflService;
 
-    @RequestMapping(method = RequestMethod.GET, path="/players/all", produces = "application/json")
-    @ApiOperation("${playercontroller.getallplayers}")
-    public List<Player> getAllPlayers() {
-        return nflService.getAllPlayers();
+    @RequestMapping(method = RequestMethod.GET, path = "/players", produces = "application/json")
+    @ApiOperation("${nflcontroller.getplayer}")
+    public PlayerResponse getPlayer(@RequestParam(required = false) Integer id,
+                                    @RequestParam(required = false) String name) {
+        if(id != null)
+            return nflService.getPlayer(id);
+        else
+            return nflService.getPlayer(name);
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/players/byid", produces = "application/json")
-    @ApiOperation("${playercontroller.getplayerbyid}")
-    public Player getPlayerById(@ApiParam("Id of the player to be obtained. Cannot be empty.")
-                                    @RequestParam String id) {
-        return nflService.getPlayerById(id);
+    @RequestMapping(method = RequestMethod.GET, path = "/teams", produces = "application/json")
+    @ApiOperation("${nflcontroller.getteam}")
+    public TeamResponse getRosterByTeamId(@RequestParam(required = false) Integer id,
+                                          @RequestParam(required = false) Team team) {
+        if(id != null)
+            return nflService.getTeam(id);
+        else
+            return nflService.getTeam(team);
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/players/byname", produces = "application/json")
-    @ApiOperation("${playercontroller.getplayerbyname}")
-    public Player getPlayerByName(@ApiParam("Id of the player to be obtained. Cannot be empty.")
-                                @RequestParam String name) {
-        return nflService.getPlayerByName(name);
+    @RequestMapping(method = RequestMethod.GET, path = "/scoreboard", produces = "application/json")
+    @ApiOperation("${nflcontroller.getscoreboard}")
+    public ScoreboardResponse getScoreboard(
+            @ApiParam(value = "Integer in the form of yyyy, yyyymm, or yyyymmdd to limit" +
+            " output to a particular season, month, or day. If not passed, results default to the current season and" +
+            " season type (pre/reg/post). For example, \"dates=20140630\". Note: Do not use in conjunction with the" +
+            " advance parameter.")
+            @RequestParam(value = "dates", required = false) String byDate,
+            @ApiParam(value = "Get ScoreboardResponse by week")
+            @RequestParam(value = "week", required = false) String byWeek){
+        return nflService.getScoreboard(byDate, byWeek);
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/rosters/byid", produces = "application/json")
-    @ApiOperation("${rostercontroller.getrosterbyteamid}")
-    public Roster getRosterByTeamId(@RequestParam String id) {
-        return nflService.getRosterByTeamId(id);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, path = "/rosters/byname", produces = "application/json")
-    @ApiOperation("${rostercontroller.getrosterbyteamname}")
-    public Roster getRosterByTeamName(@ApiParam("Name of the team for which the roster will be obtained. Cannot be empty.")
-                                      @RequestParam("name") Team team) {
-        return nflService.getRosterByTeam(team);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, path = "/rosters/all", produces = "application/json")
-    @ApiOperation("${rostercontroller.getallrosters}")
-    public List<Roster> getAllRosters(){
-        return nflService.getAllRosters();
+    @RequestMapping(method = RequestMethod.GET, path = "/playbyplay", produces = "application/json")
+    @ApiOperation("${nflcontroller.playbyplay}")
+    public PlayByPlayResponse getPlayByPlay(@RequestParam String eventId){
+        return nflService.getPlayByPlay(eventId);
     }
 
     @Autowired

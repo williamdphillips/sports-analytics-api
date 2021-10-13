@@ -1,9 +1,9 @@
-package com.phillips.sportsanalytics.entity;
+package com.phillips.sportsanalytics.response;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public final class Player {
+public final class PlayerResponse {
     public final Athlete athlete;
     public final Season season;
     public final League league;
@@ -13,7 +13,7 @@ public final class Player {
     public final Link links[];
 
     @JsonCreator
-    public Player(@JsonProperty("athlete") Athlete athlete, @JsonProperty("season") Season season, @JsonProperty("league") League league, @JsonProperty("news") News news, @JsonProperty("playerSwitcher") PlayerSwitcher playerSwitcher, @JsonProperty("quicklinks") Quicklink[] quicklinks, @JsonProperty("links") Link[] links){
+    public PlayerResponse(@JsonProperty("athlete") Athlete athlete, @JsonProperty("season") Season season, @JsonProperty("league") League league, @JsonProperty("news") News news, @JsonProperty("playerSwitcher") PlayerSwitcher playerSwitcher, @JsonProperty("quicklinks") Quicklink[] quicklinks, @JsonProperty("links") Link[] links){
         this.athlete = athlete;
         this.season = season;
         this.league = league;
