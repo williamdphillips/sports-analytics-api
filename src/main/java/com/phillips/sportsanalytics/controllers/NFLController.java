@@ -1,6 +1,7 @@
 package com.phillips.sportsanalytics.controllers;
 
 import com.phillips.sportsanalytics.constant.Team;
+import com.phillips.sportsanalytics.model.SimpleGame;
 import com.phillips.sportsanalytics.response.PlayByPlayResponse;
 import com.phillips.sportsanalytics.response.PlayerResponse;
 import com.phillips.sportsanalytics.response.TeamResponse;
@@ -9,6 +10,8 @@ import com.phillips.sportsanalytics.services.NFLService;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/nfl")
@@ -57,7 +60,7 @@ public class NFLController {
     }
 
     @Autowired
-    public void setPlayerService(NFLService nflService) {
+    public void setNFLService(NFLService nflService) {
         this.nflService = nflService;
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phillips.sportsanalytics.constant.Team;
 import com.phillips.sportsanalytics.helper.URIHelper;
+import com.phillips.sportsanalytics.model.SimpleGame;
 import com.phillips.sportsanalytics.response.PlayByPlayResponse;
 import com.phillips.sportsanalytics.response.TeamResponse;
 import com.phillips.sportsanalytics.response.ScoreboardResponse;
@@ -109,6 +110,12 @@ public class NFLService {
         }
     }
 
+    /**
+     *
+     * @param dates if not specified, defaults to current week and season type
+     * @param week week of season
+     * @return full response from ESPN api
+     */
     public ScoreboardResponse getScoreboard(String dates, String week) {
         URI uri = URIHelper.createURI(SCOREBOARD_BASE_URL, new String[]{"dates", "week"},new String[]{dates, week});
 
@@ -121,6 +128,38 @@ public class NFLService {
             System.out.println(e.getMessage());
             return null;
         }
+    }
+
+    public List<SimpleGame> getGamesByWeek(String week){
+        ScoreboardResponse sr = getScoreboard(null, week);
+
+        List<SimpleGame> simpleGames = new ArrayList <>();
+        for (ScoreboardResponse.Event e:sr.events
+             ) {
+            try{
+                SimpleGame tempSimpleGame = new SimpleGame();
+                tempSimpleGame.setHomeTeamDisplayName(e.competitions[0].competitors[0].team.displayName);
+                tempSimpleGame.setHomeTeamScore(e.competitions[0].competitors[0].score);
+                tempSimpleGame.setHomeTeamColor(e.competitions[0].competitors[0].team.color);
+                tempSimpleGame.setHomeTeamShortName(e.competitions[0].competitors[0].team.shortDisplayName);
+                tempSimpleGame.setHomeTeamLogoLoc(e.competitions[0].competitors[0].team.logo);
+
+
+                tempSimpleGame.setDisplayClock(e.competitions[0].status.displayClock);
+                tempSimpleGame.setDisplayClockDetail(e.competitions[0].status.type.detail);
+                tempSimpleGame.setCompleted(e.competitions[0].status.type.completed);
+
+                tempSimpleGame.setAwayTeamDisplayName(e.competitions[0].competitors[1].team.displayName);
+                tempSimpleGame.setAwayTeamScore(e.competitions[0].competitors[1].score);
+                tempSimpleGame.setAwayTeamColor(e.competitions[0].competitors[1].team.color);
+                tempSimpleGame.setAwayTeamShortName(e.competitions[0].competitors[1].team.shortDisplayName);
+                tempSimpleGame.setAwayTeamLogoLoc(e.competitions[0].competitors[1].team.logo);
+
+
+                simpleGames.add(tempSimpleGame);
+            }catch (ArrayIndexOutOfBoundsException ignored) {}
+        }
+        return simpleGames;
     }
 
     public PlayByPlayResponse getPlayByPlay(String eventId) {
