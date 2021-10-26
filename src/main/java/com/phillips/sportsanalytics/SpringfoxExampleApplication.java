@@ -5,8 +5,12 @@ import com.phillips.sportsanalytics.services.NFLService;
 import com.phillips.sportsanalytics.util.HTTPConnection;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -16,6 +20,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import java.util.Arrays;
 
 @SpringBootApplication
+@EnableCaching
+@EnableScheduling
 public class SpringfoxExampleApplication {
 
 	public static void main(String[] args) {
@@ -51,6 +57,12 @@ public class SpringfoxExampleApplication {
 			final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 			source.registerCorsConfiguration("/**", configuration);
 			return source;
+		}
+
+		@CacheEvict(allEntries = true, value = {"plays", "games"})
+		@Scheduled(fixedRate = 30000)
+		public void clearCache() {
+			System.out.println("Cache cleared");
 		}
 	}
 }

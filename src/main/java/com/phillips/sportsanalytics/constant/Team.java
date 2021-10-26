@@ -43,6 +43,8 @@ public enum Team {
     String shortName;
     Team(String id, String displayName, String shortName) {
         this.id = id;
+        this.displayName = displayName;
+        this.shortName = shortName;
     }
 
     public String getId() {
