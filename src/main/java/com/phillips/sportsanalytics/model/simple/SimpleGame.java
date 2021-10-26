@@ -1,4 +1,4 @@
-package com.phillips.sportsanalytics.model;
+package com.phillips.sportsanalytics.model.simple;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,6 +11,8 @@ public class SimpleGame {
     String description;
     Boolean isCompleted;
     String eventId;
+    String week;
+    String state;
 
     String homeTeamDisplayName;
     String homeTeamShortName;
@@ -48,7 +50,9 @@ public class SimpleGame {
                       @JsonProperty String homeTeamInitials,
                       @JsonProperty String awayTeamInitials,
                       @JsonProperty String homeTeamRecord,
-                      @JsonProperty String awayTeamRecord){
+                      @JsonProperty String awayTeamRecord,
+                      @JsonProperty String week,
+                      @JsonProperty String state){
         this.displayClock = displayClock;
         this.displayClockDetail = displayClockDetail;
         this.shortDetail = shortDetail;
@@ -69,9 +73,27 @@ public class SimpleGame {
         this.awayTeamInitials = awayTeamInitials;
         this.homeTeamRecord = homeTeamRecord;
         this.awayTeamRecord = awayTeamRecord;
+        this.week = week;
+        this.state = state;
     }
 
     public SimpleGame(){}
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getWeek() {
+        return week;
+    }
+
+    public void setWeek(String week) {
+        this.week = week;
+    }
 
     public String getHomeTeamRecord() {
         return homeTeamRecord;

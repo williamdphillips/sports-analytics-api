@@ -1,4 +1,4 @@
-package com.phillips.sportsanalytics.model;
+package com.phillips.sportsanalytics.model.simple;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

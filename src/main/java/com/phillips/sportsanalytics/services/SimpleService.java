@@ -3,12 +3,15 @@ package com.phillips.sportsanalytics.services;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phillips.sportsanalytics.constant.Team;
-import com.phillips.sportsanalytics.model.SimpleGame;
-import com.phillips.sportsanalytics.model.SimplePlay;
+import com.phillips.sportsanalytics.model.simple.SimpleGame;
+import com.phillips.sportsanalytics.model.simple.SimplePlay;
+import com.phillips.sportsanalytics.model.simple.SimpleProbability;
 import com.phillips.sportsanalytics.response.PlayByPlayResponse;
 import com.phillips.sportsanalytics.response.PlayerResponse;
 import com.phillips.sportsanalytics.response.ScoreboardResponse;
 import com.phillips.sportsanalytics.response.TeamResponse;
+import com.phillips.sportsanalytics.response.winprobability.ItemsItem;
+import com.phillips.sportsanalytics.response.winprobability.WinProbabilityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,14 +20,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class SimpleService {
-
-    private List<PlayerResponse> playerResponses;
-    private List<TeamResponse.Team.Athlete> rosterAthletes;
-    private List<TeamResponse> teamRespons;
-    private final String PLAYER_ID_BASE_URL = "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes";
-    private final String ROSTER_ID_BASE_URL = "site.api.espn.com/apis/site/v2/sports/football/nfl/teams";
-    private final String SCOREBOARD_BASE_URL = "site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
-    private final String PLAY_BY_PLAY_BASE_URL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary";
     private NFLService nflService;
 
     ObjectMapper mapper;
@@ -62,6 +57,8 @@ public class SimpleService {
                 tempSimpleGame.setShortDetail(e.competitions[0].status.type.shortDetail);
                 tempSimpleGame.setDescription(e.competitions[0].status.type.description);
                 tempSimpleGame.setEventId(e.competitions[0].id);
+                tempSimpleGame.setWeek(String.valueOf(sr.week.number));
+                tempSimpleGame.setState(e.competitions[0].status.type.state);
 
                 tempSimpleGame.setAwayTeamDisplayName(e.competitions[0].competitors[1].team.displayName);
                 tempSimpleGame.setAwayTeamScore(e.competitions[0].competitors[1].score);
@@ -81,67 +78,74 @@ public class SimpleService {
     }
 
     public SimplePlay getLatestPlay(String eventId){
-        PlayByPlayResponse sr = nflService.getPlayByPlay(eventId);
+        PlayByPlayResponse pr = nflService.getPlayByPlay(eventId);
         SimplePlay temp = new SimplePlay();
 
         PlayByPlayResponse.Drives.Current.Play currentPlay;
-        if(sr.drives != null) {
-            currentPlay = sr.drives.current.plays[sr.drives.current.plays.length - 1];
-            temp.setLatestPlay(currentPlay.text);
-            temp.setDown(String.valueOf(currentPlay.start.down));
-            temp.setDownDistanceShortText(currentPlay.start.shortDownDistanceText);
-            temp.setDriveDescription(currentPlay.text);
-            temp.setScoringPlay(currentPlay.scoringPlay);
-            temp.setDownDistanceText(currentPlay.start.downDistanceText);
-            temp.setYardLine(String.valueOf(currentPlay.start.yardLine));
-            temp.setFirstDownDistance(String.valueOf(currentPlay.start.distance));
-            temp.setTeamInPossessionId(currentPlay.start.team.id);
-            String teamId = currentPlay.start.team.id;
-            Team currentTeam = Arrays.stream(Team.values()).filter(t -> t.getId().equalsIgnoreCase(teamId)).collect(Collectors.toList()).get(0);
-            temp.setTeamInPossessionLongName(currentTeam.getDisplayName());
-            return temp;
-        }else return null;
+        temp.setEventId(eventId);
+            try{
+                currentPlay = pr.drives.current.plays[pr.drives.current.plays.length - 1];
+                temp.setLatestPlay(currentPlay.text);
+                temp.setDown(String.valueOf(currentPlay.start.down));
+                temp.setDownDistanceShortText(currentPlay.start.shortDownDistanceText);
+                temp.setDriveDescription(currentPlay.text);
+                temp.setScoringPlay(currentPlay.scoringPlay);
+                temp.setDownDistanceText(currentPlay.start.downDistanceText);
+                temp.setYardLine(String.valueOf(currentPlay.start.yardLine));
+                temp.setFirstDownDistance(String.valueOf(currentPlay.start.distance));
+                temp.setTeamInPossessionId(currentPlay.start.team.id);
+                temp.setTeamInPossessionLongName(Arrays.stream(Team.values()).filter(
+                        t -> t.getId().equals(currentPlay.start.team.id)).collect(Collectors.toList())
+                        .get(0).getDisplayName());
+                temp.setPossessionText(currentPlay.start.possessionText);
+                temp.setTeamInPossessionInitials(Arrays.stream(Team.values()).filter(
+                        t -> t.getId().equals(currentPlay.start.team.id)).collect(Collectors.toList())
+                        .get(0).getAbbrev());
+                return temp;
+            }catch (Exception e) { return temp; }
     }
 
     public List<SimplePlay> getLatestPlays(){
         List<SimpleGame> sr = getGamesByWeek(null);
 
-        ArrayList<String> ids = (ArrayList) sr.stream().map(r -> r.getEventId()).collect(Collectors.toList());
+        ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimplePlay> simplePlays = new ArrayList <>();
-        ids.forEach(id -> {
-            PlayByPlayResponse pr = nflService.getPlayByPlay(id);
-            SimplePlay temp = new SimplePlay();
-            temp.setEventId(id);
-
-            PlayByPlayResponse.Drives.Current.Play currentPlay;
-            if(pr.drives != null) {
-                try {
-                    currentPlay = pr.drives.current.plays[pr.drives.current.plays.length - 1];
-                    temp.setLatestPlay(currentPlay.text);
-                    temp.setDown(String.valueOf(currentPlay.start.down));
-                    temp.setDownDistanceShortText(currentPlay.start.shortDownDistanceText);
-                    temp.setDriveDescription(currentPlay.text);
-                    temp.setScoringPlay(currentPlay.scoringPlay);
-                    temp.setDownDistanceText(currentPlay.start.downDistanceText);
-                    temp.setYardLine(String.valueOf(currentPlay.start.yardLine));
-                    temp.setFirstDownDistance(String.valueOf(currentPlay.start.distance));
-                    temp.setTeamInPossessionId(currentPlay.start.team.id);
-                    temp.setTeamInPossessionLongName(Arrays.stream(Team.values()).filter(
-                            t -> t.getId().equals(currentPlay.start.team.id)).collect(Collectors.toList())
-                            .get(0).getDisplayName());
-                    temp.setPossessionText(currentPlay.start.possessionText);
-                    temp.setTeamInPossessionInitials(Arrays.stream(Team.values()).filter(
-                            t -> t.getId().equals(currentPlay.start.team.id)).collect(Collectors.toList())
-                            .get(0).getShortName());
-                    simplePlays.add(temp);
-                }catch (Exception ignored){
-                    simplePlays.add(temp);
-                }
-            }else{
-                simplePlays.add(temp);
-            }
-        });
+        ids.forEach(id -> simplePlays.add(getLatestPlay(id)));
         return simplePlays;
     }
 
+    public SimpleProbability getGameProbability(String eventId){
+        WinProbabilityResponse wp = nflService.getWinProbability(eventId);
+        SimpleProbability temp = new SimpleProbability();
+        temp.setEventId(eventId);
+        ItemsItem latestPrediction = wp.getItems().get(wp.getItems().size()-1);
+        temp.setHomeTeamId(latestPrediction.getHomeTeam().getRef()
+                .substring(latestPrediction.getHomeTeam().getRef().indexOf("teams/")+6,
+                        latestPrediction.getHomeTeam().getRef().indexOf("teams/")+8)
+                        .replace("?", ""));
+        Team homeTeam = Arrays.stream(Team.values()).filter(t -> t.getId().equals(temp.getHomeTeamId())).collect(Collectors.toList()).get(0);
+        temp.setHomeTeamLongName(homeTeam.getDisplayName());
+        temp.setHomeTeamInitials(homeTeam.getAbbrev());
+        temp.setHomeTeamShortName(homeTeam.getShortName());
+        temp.setHomeTeamWinPercentage(String.valueOf(latestPrediction.getHomeWinPercentage()));
+        temp.setAwayTeamId(latestPrediction.getAwayTeam().getRef()
+                .substring(latestPrediction.getAwayTeam().getRef().indexOf("teams/")+6,
+                        latestPrediction.getAwayTeam().getRef().indexOf("teams/")+8)
+                .replace("?", ""));
+        Team awayTeam = Arrays.stream(Team.values()).filter(t -> t.getId().equals(temp.getAwayTeamId())).collect(Collectors.toList()).get(0);
+        temp.setAwayTeamLongName(awayTeam.getDisplayName());
+        temp.setAwayTeamInitials(awayTeam.getAbbrev());
+        temp.setAwayTeamShortName(awayTeam.getShortName());
+        temp.setAwayTeamWinPercenage(String.valueOf(latestPrediction.getAwayWinPercentage()));
+        return temp;
+    }
+
+    public List<SimpleProbability> getGameProbabilities(){
+        List<SimpleGame> sr = getGamesByWeek(null);
+
+        ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
+        ArrayList<SimpleProbability> simplePlays = new ArrayList <>();
+        ids.forEach(id -> simplePlays.add(getGameProbability(id)));
+        return simplePlays;
+    }
 }

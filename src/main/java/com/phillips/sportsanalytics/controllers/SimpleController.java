@@ -1,16 +1,15 @@
 package com.phillips.sportsanalytics.controllers;
 
-import com.phillips.sportsanalytics.model.SimpleGame;
-import com.phillips.sportsanalytics.model.SimplePlay;
+import com.phillips.sportsanalytics.model.simple.SimpleGame;
+import com.phillips.sportsanalytics.model.simple.SimplePlay;
+import com.phillips.sportsanalytics.model.simple.SimpleProbability;
 import com.phillips.sportsanalytics.services.SimpleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,8 +20,14 @@ public class SimpleController {
 
     private SimpleService simpleService;
 
-    @Cacheable(value="games", key="#root.method")
-    @RequestMapping(method = RequestMethod.GET, path = "/games", produces = "application/json")
+
+    @Caching(
+            cacheable = {
+                    @Cacheable(value="static", key = "#root.method + #week", condition = "#week != null"),
+                    @Cacheable(value="games", key = "#root.method", condition = "#week == null")
+            }
+    )
+    @GetMapping(path = "/games", produces = "application/json")
     @ApiOperation("${nflcontroller.getcurrentgames}")
     public List <SimpleGame> getGamesByWeek(@RequestParam(required = false) String week) {
         return simpleService.getGamesByWeek(week);
@@ -39,6 +44,19 @@ public class SimpleController {
     @ApiOperation("${nflcontroller.getlatestplays}")
     public List<SimplePlay> getLatestPlays() {
         return simpleService.getLatestPlays();
+    }
+
+    @RequestMapping(method = RequestMethod.GET, path = "/probablity", produces = "application/json")
+    @ApiOperation("${nflcontroller.getwinprobabilit}")
+    public SimpleProbability getWinProbability(@RequestParam(required = true) String eventid) {
+        return simpleService.getGameProbability(eventid);
+    }
+
+    @Cacheable(value="plays", key="#root.method")
+    @RequestMapping(method = RequestMethod.GET, path = "/probabilities", produces = "application/json")
+    @ApiOperation("${nflcontroller.getwinprobabilities}")
+    public List<SimpleProbability> getWinProbabilities() {
+        return simpleService.getGameProbabilities();
     }
 
     @Autowired

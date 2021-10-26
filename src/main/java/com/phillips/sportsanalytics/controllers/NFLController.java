@@ -1,17 +1,12 @@
 package com.phillips.sportsanalytics.controllers;
 
 import com.phillips.sportsanalytics.constant.Team;
-import com.phillips.sportsanalytics.model.SimpleGame;
-import com.phillips.sportsanalytics.response.PlayByPlayResponse;
-import com.phillips.sportsanalytics.response.PlayerResponse;
-import com.phillips.sportsanalytics.response.TeamResponse;
-import com.phillips.sportsanalytics.response.ScoreboardResponse;
+import com.phillips.sportsanalytics.response.*;
+import com.phillips.sportsanalytics.response.winprobability.WinProbabilityResponse;
 import com.phillips.sportsanalytics.services.NFLService;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/nfl")
@@ -57,6 +52,12 @@ public class NFLController {
     @ApiOperation("${nflcontroller.playbyplay}")
     public PlayByPlayResponse getPlayByPlay(@RequestParam String eventId){
         return nflService.getPlayByPlay(eventId);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, path = "/winprobability", produces = "application/json")
+    @ApiOperation("${nflcontroller.winprobability}")
+    public WinProbabilityResponse getWinProbability(@RequestParam String eventId){
+        return nflService.getWinProbability(eventId);
     }
 
     @Autowired

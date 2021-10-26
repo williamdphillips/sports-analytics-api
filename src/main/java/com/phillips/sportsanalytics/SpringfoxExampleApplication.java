@@ -60,7 +60,7 @@ public class SpringfoxExampleApplication {
 		}
 
 		@CacheEvict(allEntries = true, value = {"plays", "games"})
-		@Scheduled(fixedRate = 30000)
+		//@Scheduled(fixedRate = 60000)
 		public void clearCache() {
 			System.out.println("Cache cleared");
 		}
