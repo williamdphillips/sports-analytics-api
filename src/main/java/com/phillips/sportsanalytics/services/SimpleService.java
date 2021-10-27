@@ -3,13 +3,12 @@ package com.phillips.sportsanalytics.services;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phillips.sportsanalytics.constant.Team;
-import com.phillips.sportsanalytics.model.simple.SimpleGame;
-import com.phillips.sportsanalytics.model.simple.SimplePlay;
-import com.phillips.sportsanalytics.model.simple.SimpleProbability;
+import com.phillips.sportsanalytics.model.simple.*;
 import com.phillips.sportsanalytics.response.PlayByPlayResponse;
-import com.phillips.sportsanalytics.response.PlayerResponse;
 import com.phillips.sportsanalytics.response.ScoreboardResponse;
-import com.phillips.sportsanalytics.response.TeamResponse;
+import com.phillips.sportsanalytics.response.odds.OddsResponse;
+import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
+import com.phillips.sportsanalytics.response.prediction.StatisticsItem;
 import com.phillips.sportsanalytics.response.winprobability.ItemsItem;
 import com.phillips.sportsanalytics.response.winprobability.WinProbabilityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class SimpleService {
@@ -118,34 +118,139 @@ public class SimpleService {
         WinProbabilityResponse wp = nflService.getWinProbability(eventId);
         SimpleProbability temp = new SimpleProbability();
         temp.setEventId(eventId);
-        ItemsItem latestPrediction = wp.getItems().get(wp.getItems().size()-1);
-        temp.setHomeTeamId(latestPrediction.getHomeTeam().getRef()
-                .substring(latestPrediction.getHomeTeam().getRef().indexOf("teams/")+6,
-                        latestPrediction.getHomeTeam().getRef().indexOf("teams/")+8)
-                        .replace("?", ""));
-        Team homeTeam = Arrays.stream(Team.values()).filter(t -> t.getId().equals(temp.getHomeTeamId())).collect(Collectors.toList()).get(0);
-        temp.setHomeTeamLongName(homeTeam.getDisplayName());
-        temp.setHomeTeamInitials(homeTeam.getAbbrev());
-        temp.setHomeTeamShortName(homeTeam.getShortName());
-        temp.setHomeTeamWinPercentage(String.valueOf(latestPrediction.getHomeWinPercentage()));
-        temp.setAwayTeamId(latestPrediction.getAwayTeam().getRef()
-                .substring(latestPrediction.getAwayTeam().getRef().indexOf("teams/")+6,
-                        latestPrediction.getAwayTeam().getRef().indexOf("teams/")+8)
-                .replace("?", ""));
-        Team awayTeam = Arrays.stream(Team.values()).filter(t -> t.getId().equals(temp.getAwayTeamId())).collect(Collectors.toList()).get(0);
-        temp.setAwayTeamLongName(awayTeam.getDisplayName());
-        temp.setAwayTeamInitials(awayTeam.getAbbrev());
-        temp.setAwayTeamShortName(awayTeam.getShortName());
-        temp.setAwayTeamWinPercenage(String.valueOf(latestPrediction.getAwayWinPercentage()));
-        return temp;
+        try {
+            ItemsItem latestPrediction = wp.getItems().get(wp.getItems().size() - 1);
+            temp.setHomeTeamId(latestPrediction.getHomeTeam().getRef()
+                    .substring(latestPrediction.getHomeTeam().getRef().indexOf("teams/") + 6,
+                            latestPrediction.getHomeTeam().getRef().indexOf("teams/") + 8)
+                    .replace("?", ""));
+            Team homeTeam = Arrays.stream(Team.values()).filter(t -> t.getId().equals(temp.getHomeTeamId())).collect(Collectors.toList()).get(0);
+            temp.setHomeTeamLongName(homeTeam.getDisplayName());
+            temp.setHomeTeamInitials(homeTeam.getAbbrev());
+            temp.setHomeTeamShortName(homeTeam.getShortName());
+            temp.setHomeTeamWinPercentage(String.valueOf(latestPrediction.getHomeWinPercentage()));
+            temp.setAwayTeamId(latestPrediction.getAwayTeam().getRef()
+                    .substring(latestPrediction.getAwayTeam().getRef().indexOf("teams/") + 6,
+                            latestPrediction.getAwayTeam().getRef().indexOf("teams/") + 8)
+                    .replace("?", ""));
+            Team awayTeam = Arrays.stream(Team.values()).filter(t -> t.getId().equals(temp.getAwayTeamId())).collect(Collectors.toList()).get(0);
+            temp.setAwayTeamLongName(awayTeam.getDisplayName());
+            temp.setAwayTeamInitials(awayTeam.getAbbrev());
+            temp.setAwayTeamShortName(awayTeam.getShortName());
+            temp.setAwayTeamWinPercentage(String.valueOf(latestPrediction.getAwayWinPercentage()));
+            return temp;
+        }catch (Exception e) { return temp;}
     }
 
-    public List<SimpleProbability> getGameProbabilities(){
-        List<SimpleGame> sr = getGamesByWeek(null);
+    public List<SimpleProbability> getGameProbabilities(String week){
+        List<SimpleGame> sr = getGamesByWeek(week);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
-        ArrayList<SimpleProbability> simplePlays = new ArrayList <>();
-        ids.forEach(id -> simplePlays.add(getGameProbability(id)));
-        return simplePlays;
+        ArrayList<SimpleProbability> simpleProbabilities = new ArrayList <>();
+        ids.forEach(id -> simpleProbabilities.add(getGameProbability(id)));
+        return simpleProbabilities;
+    }
+
+    public SimplePrediction getLatestPrediction(String eventId){
+        PredictionResponse pr = nflService.getPrediction(eventId);
+        SimplePrediction temp = new SimplePrediction();
+        temp.setEventId(eventId);
+        try{
+            List<StatisticsItem> homeStats = pr.getHomeTeam().getStatistics();
+            List<StatisticsItem> awayStats = pr.getAwayTeam().getStatistics();
+
+            temp.setHomeOppStrengthRating(homeStats.stream().filter(s -> s.getName()
+                    .equalsIgnoreCase("oppSeasonStrengthRating"))
+                    .map(s -> String.valueOf(s.getValue())).collect(Collectors.toList()).get(0));
+            temp.setHomeOppPointDifference(homeStats.stream().filter(s -> s.getName()
+                    .equalsIgnoreCase("teamPredPtDiff"))
+                    .map(s -> String.valueOf(s.getValue())).collect(Collectors.toList()).get(0));
+            temp.setHomeTeamChanceLoss(homeStats.stream().filter(s -> s.getName()
+                    .equalsIgnoreCase("teamChanceLoss"))
+                    .map(s -> String.valueOf(s.getValue())).collect(Collectors.toList()).get(0));
+            temp.setHomeTeamId(Arrays.stream(Team.values()).filter(t -> t.getAbbrev()
+                    .equalsIgnoreCase(pr.getShortName().substring(0,3).trim())).map(Team::getId)
+                    .collect(Collectors.toList()).get(0));
+            temp.setHomeTeamDisplayName(Arrays.stream(Team.values()).filter(t -> t.getAbbrev()
+                    .equalsIgnoreCase(pr.getShortName().substring(0,3).trim())).map(Team::getDisplayName)
+                    .collect(Collectors.toList()).get(0));
+            temp.setHomeTeamInitials(Arrays.stream(Team.values()).map(Team::getAbbrev).filter(abbrev -> abbrev
+                    .equalsIgnoreCase(pr.getShortName().substring(0,3).trim()))
+                    .collect(Collectors.toList()).get(0));
+
+
+            temp.setAwayOppStrengthRating(awayStats.stream().filter(s -> s.getName()
+                    .equalsIgnoreCase("oppSeasonStrengthRating"))
+                    .map(s -> String.valueOf(s.getValue())).collect(Collectors.toList()).get(0));
+            temp.setAwayOppPointDifference(awayStats.stream().filter(s -> s.getName()
+                    .equalsIgnoreCase("teamPredPtDiff"))
+                    .map(s -> String.valueOf(s.getValue())).collect(Collectors.toList()).get(0));
+            temp.setAwayTeamChanceLoss(awayStats.stream().filter(s -> s.getName()
+                    .equalsIgnoreCase("teamChanceLoss"))
+                    .map(s -> String.valueOf(s.getValue())).collect(Collectors.toList()).get(0));
+            temp.setAwayTeamDisplayName(Arrays.stream(Team.values()).filter(t -> t.getAbbrev()
+                    .equalsIgnoreCase(pr.getShortName().substring(pr.getShortName().length()-4,pr.getShortName().length()-1)
+                            .trim())).map(Team::getDisplayName)
+                    .collect(Collectors.toList()).get(0));
+            temp.setAwayTeamDisplayName(Arrays.stream(Team.values()).filter(t -> t.getAbbrev()
+                    .equalsIgnoreCase(pr.getShortName().substring(pr.getShortName().length()-4,pr.getShortName().length()-1)
+                            .trim())).map(Team::getId)
+                    .collect(Collectors.toList()).get(0));
+            temp.setAwayTeamInitials(Arrays.stream(Team.values()).map(Team::getAbbrev).filter(abbrev -> abbrev
+                    .equalsIgnoreCase(pr.getShortName().substring(pr.getShortName().length()-4,pr.getShortName().length()-1)
+                            .trim()))
+                    .collect(Collectors.toList()).get(0));
+
+            return temp;
+        }catch (Exception e) { return temp; }
+    }
+
+    public List<SimplePrediction> getLatestPredictions(String week){
+        List<SimpleGame> sr = getGamesByWeek(week);
+
+        ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
+        ArrayList<SimplePrediction> simplePredictions = new ArrayList <>();
+        ids.forEach(id -> simplePredictions.add(getLatestPrediction(id)));
+        return simplePredictions;
+    }
+
+    public SimpleOdds getOdds(String eventId){
+        OddsResponse pr = nflService.getOdds(eventId);
+        SimpleOdds temp = new SimpleOdds();
+        temp.setEventId(eventId);
+        try{
+            temp.setOverOdds(String.valueOf(pr.getOverOdds()));
+            temp.setOverUnder(String.valueOf(pr.getOverUnder()));
+            temp.setSpread(String.valueOf(pr.getSpread()));
+            temp.setDetails(pr.getDetails());
+
+            temp.setAwayTeamAverageScore(String.valueOf(pr.getAwayTeamOdds().getAverageScore()));
+            temp.setAwayTeamFavorite(String.valueOf(pr.getAwayTeamOdds().isFavorite()));
+            temp.setAwayTeamMoneyLine(String.valueOf(pr.getAwayTeamOdds().getMoneyLine()));
+            temp.setAwayTeamSpreadOdds(String.valueOf(pr.getAwayTeamOdds().getSpreadOdds()));
+            temp.setAwayTeamSpreadLosses(String.valueOf(pr.getAwayTeamOdds().getSpreadRecord().getLosses()));
+            temp.setAwayTeamSpreadWins(String.valueOf(pr.getAwayTeamOdds().getSpreadRecord().getWins()));
+            temp.setAwayTeamSpreadSummary(pr.getAwayTeamOdds().getSpreadRecord().getSummary());
+
+
+            temp.setHomeTeamAverageScore(String.valueOf(pr.getHomeTeamOdds().getAverageScore()));
+            temp.setHomeTeamFavorite(String.valueOf(pr.getHomeTeamOdds().isFavorite()));
+            temp.setHomeTeamMoneyLine(String.valueOf(pr.getHomeTeamOdds().getMoneyLine()));
+            temp.setHomeTeamSpreadOdds(String.valueOf(pr.getHomeTeamOdds().getSpreadOdds()));
+            temp.setHomeTeamSpreadLosses(String.valueOf(pr.getHomeTeamOdds().getSpreadRecord().getLosses()));
+            temp.setHomeTeamSpreadWins(String.valueOf(pr.getHomeTeamOdds().getSpreadRecord().getWins()));
+            temp.setHomeTeamSpreadSummary(pr.getHomeTeamOdds().getSpreadRecord().getSummary());
+
+            return temp;
+        }catch (Exception e) { return temp; }
+    }
+
+    public List<SimpleOdds> getAllOdds(String week){
+        List<SimpleGame> sr = getGamesByWeek(week);
+
+        ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
+        ArrayList<SimpleOdds> simpleOdds = new ArrayList <>();
+        ids.forEach(id -> simpleOdds.add(getOdds(id)));
+        return simpleOdds;
     }
 }

@@ -12,13 +12,13 @@ public class SimpleProbability {
     private String awayTeamInitials;
     private String awayTeamShortName;
     private String awayTeamLongName;
-    private String awayTeamWinPercenage;
+    private String awayTeamWinPercentage;
 
     public SimpleProbability() {
 
     }
 
-    public SimpleProbability(String eventId, String homeTeamId, String homeTeamInitials, String homeTeamShortName, String homeTeamLongName, String homeTeamWinPercentage, String awayTeamId, String awayTeamInitials, String awayTeamShortName, String awayTeamLongName, String awayTeamWinPercenage) {
+    public SimpleProbability(String eventId, String homeTeamId, String homeTeamInitials, String homeTeamShortName, String homeTeamLongName, String homeTeamWinPercentage, String awayTeamId, String awayTeamInitials, String awayTeamShortName, String awayTeamLongName, String awayTeamWinPercentage) {
         this.eventId = eventId;
         this.homeTeamId = homeTeamId;
         this.homeTeamInitials = homeTeamInitials;
@@ -29,7 +29,7 @@ public class SimpleProbability {
         this.awayTeamInitials = awayTeamInitials;
         this.awayTeamShortName = awayTeamShortName;
         this.awayTeamLongName = awayTeamLongName;
-        this.awayTeamWinPercenage = awayTeamWinPercenage;
+        this.awayTeamWinPercentage = awayTeamWinPercentage;
     }
 
     public String getEventId() {
@@ -112,11 +112,11 @@ public class SimpleProbability {
         this.awayTeamLongName = awayTeamLongName;
     }
 
-    public String getAwayTeamWinPercenage() {
-        return awayTeamWinPercenage;
+    public String getAwayTeamWinPercentage() {
+        return awayTeamWinPercentage;
     }
 
-    public void setAwayTeamWinPercenage(String awayTeamWinPercenage) {
-        this.awayTeamWinPercenage = awayTeamWinPercenage;
+    public void setAwayTeamWinPercentage(String awayTeamWinPercentage) {
+        this.awayTeamWinPercentage = awayTeamWinPercentage;
     }
 }

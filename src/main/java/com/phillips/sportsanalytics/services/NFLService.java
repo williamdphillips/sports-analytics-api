@@ -6,6 +6,8 @@ import com.phillips.sportsanalytics.constant.Team;
 import com.phillips.sportsanalytics.helper.URIHelper;
 import com.phillips.sportsanalytics.model.simple.SimpleGame;
 import com.phillips.sportsanalytics.response.*;
+import com.phillips.sportsanalytics.response.odds.OddsResponse;
+import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
 import com.phillips.sportsanalytics.response.winprobability.WinProbabilityResponse;
 import com.phillips.sportsanalytics.util.HTTPConnection;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,9 @@ public class NFLService {
     private final String SCOREBOARD_BASE_URL = "site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
     private final String PLAY_BY_PLAY_BASE_URL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary";
     private final String WIN_PROBABILITY_BASE_URL = "sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/:eventid/competitions/:eventid/probabilities";
+    private final String PREDICTOR_BASE_URL = "sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/:eventid/competitions/:eventid/predictor?lang=en&region=us";
+    private final String HEAD_TO_HEAD_BASE_URL = "sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/:eventid/competitions/:eventid/odds/1002/head-to-heads";
+    private final String ODDS_BASE_URL = "sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/:eventid/competitions/:eventid/odds/1002/";
 
     ObjectMapper mapper;
 
@@ -32,6 +37,32 @@ public class NFLService {
         mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+    }
+
+    public OddsResponse getOdds(String eventId){
+        URI uri = URIHelper.createURI(ODDS_BASE_URL.replace(":eventid", eventId));
+
+        try {
+            Map <String,Object> responseMap = HTTPConnection.doGetRequest(uri.toString());
+            return mapper.convertValue(responseMap, OddsResponse.class);
+        }catch (Exception e){
+            System.out.println("ERROR");
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public PredictionResponse getPrediction(String eventId){
+        URI uri = URIHelper.createURI(PREDICTOR_BASE_URL.replace(":eventid", eventId) + "&limit=1000");
+
+        try {
+            Map <String,Object> responseMap = HTTPConnection.doGetRequest(uri.toString());
+            return mapper.convertValue(responseMap, PredictionResponse.class);
+        }catch (Exception e){
+            System.out.println("ERROR");
+            System.out.println(e.getMessage());
+            return null;
+        }
     }
 
     public WinProbabilityResponse getWinProbability(String eventId){

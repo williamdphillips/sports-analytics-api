@@ -32,7 +32,7 @@ public enum Team {
     SEATTLE_SEAHAWKS("26", "Seattle Seahawks", "Seahawks","SEA"),
     TAMPA_BAY_BUCCANEERS("27", "Tampa Bay Buccaneers", "Buccaneers","TB"),
     TENNESSEE_TITANS("10", "Tennessee Titans", "Titans","TEN"),
-    WASHINGTON("28", "Washington Football Team", "Washington","WAS"),
+    WASHINGTON("28", "Washington Football Team", "Washington","WSH"),
     AFC("31", "AFC", "AFC","AFC"),
     NFC("32", "NFC", "NFC","NFC");
 

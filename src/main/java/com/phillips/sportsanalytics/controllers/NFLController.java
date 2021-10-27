@@ -2,6 +2,8 @@ package com.phillips.sportsanalytics.controllers;
 
 import com.phillips.sportsanalytics.constant.Team;
 import com.phillips.sportsanalytics.response.*;
+import com.phillips.sportsanalytics.response.odds.OddsResponse;
+import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
 import com.phillips.sportsanalytics.response.winprobability.WinProbabilityResponse;
 import com.phillips.sportsanalytics.services.NFLService;
 import io.swagger.annotations.*;
@@ -58,6 +60,18 @@ public class NFLController {
     @ApiOperation("${nflcontroller.winprobability}")
     public WinProbabilityResponse getWinProbability(@RequestParam String eventId){
         return nflService.getWinProbability(eventId);
+    }
+
+    @GetMapping(path = "/prediction", produces = "application/json")
+    @ApiOperation("${nflcontroller.prediction}")
+    public PredictionResponse getPrediction(@RequestParam String eventId){
+        return nflService.getPrediction(eventId);
+    }
+
+    @GetMapping(path = "/odds", produces = "application/json")
+    @ApiOperation("${nflcontroller.odds}")
+    public OddsResponse getOdds(@RequestParam String eventId){
+        return nflService.getOdds(eventId);
     }
 
     @Autowired
