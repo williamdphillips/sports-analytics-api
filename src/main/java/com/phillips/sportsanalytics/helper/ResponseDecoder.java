@@ -31,6 +31,7 @@ public class ResponseDecoder {
             tempEvent.setEventId(e.competitions[0].id);
             tempEvent.setWeek(String.valueOf(sr.week.number));
             tempEvent.setState(e.competitions[0].status.type.state);
+            tempEvent.setPeriod(e.status.period);
 
             Team homeTeam = new Team();
             homeTeam.setId(e.competitions[0].competitors[0].team.id);
@@ -95,7 +96,7 @@ public class ResponseDecoder {
                 play.setPlayDescription(currentPlay.text);
                 play.setDown(currentPlay.start.down);
                 play.setDownDistanceShortText(currentPlay.start.shortDownDistanceText);
-                play.setDriveDescription(currentPlay.text);
+                play.setDriveDescription(pr.drives.current.description);
                 play.setScoringPlay(currentPlay.scoringPlay);
                 play.setDownDistanceText(currentPlay.start.downDistanceText);
                 play.setYardLine(currentPlay.start.yardLine);
@@ -129,7 +130,7 @@ public class ResponseDecoder {
                 event.getHomeTeam().setOppPointDifference(homeStats.stream().filter(s -> s.getName()
                         .equalsIgnoreCase("teamPredPtDiff"))
                         .map(StatisticsItem::getValue).collect(Collectors.toList()).get(0));
-                event.getHomeTeam().setChanceWin(homeStats.stream().filter(s -> s.getName()
+                event.getHomeTeam().setWinPrediction(homeStats.stream().filter(s -> s.getName()
                         .equalsIgnoreCase("teamChanceLoss"))
                         .map(StatisticsItem::getValue).collect(Collectors.toList()).get(0));
 
@@ -139,7 +140,7 @@ public class ResponseDecoder {
                 event.getAwayTeam().setOppPointDifference(awayStats.stream().filter(s -> s.getName()
                         .equalsIgnoreCase("teamPredPtDiff"))
                         .map(StatisticsItem::getValue).collect(Collectors.toList()).get(0));
-                event.getAwayTeam().setChanceWin(awayStats.stream().filter(s -> s.getName()
+                event.getAwayTeam().setWinPrediction(awayStats.stream().filter(s -> s.getName()
                         .equalsIgnoreCase("teamChanceLoss"))
                         .map(StatisticsItem::getValue).collect(Collectors.toList()).get(0));
 

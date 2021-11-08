@@ -24,7 +24,7 @@ public class Team {
     private String currentScore;
 
     //Prediction
-    private double chanceWin;
+    private double winPrediction;
     private double oppStrengthRating;
     private double oppPointDifference;
 
@@ -171,12 +171,12 @@ public class Team {
         this.currentScore = currentScore;
     }
 
-    public double getChanceWin() {
-        return chanceWin;
+    public double getWinPrediction() {
+        return winPrediction;
     }
 
-    public void setChanceWin(double chanceWin) {
-        this.chanceWin = chanceWin;
+    public void setWinPrediction(double winPrediction) {
+        this.winPrediction = winPrediction;
     }
 
     public double getOppStrengthRating() {

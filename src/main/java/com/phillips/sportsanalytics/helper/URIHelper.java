@@ -13,7 +13,7 @@ public class URIHelper {
                 .host(host);
 
         for(int i = 0; i < params.length; i++){
-            if(args[i] != null && !args[i].isEmpty()){
+            if(args[i] != null && !args[i].equalsIgnoreCase("null") && !args[i].isEmpty()){
                 builder = builder.queryParam(params[i], args[i]);
             }
         }

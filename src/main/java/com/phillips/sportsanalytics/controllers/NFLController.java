@@ -44,10 +44,10 @@ public class NFLController {
             " output to a particular season, month, or day. If not passed, results default to the current season and" +
             " season type (pre/reg/post). For example, \"dates=20140630\". Note: Do not use in conjunction with the" +
             " advance parameter.")
-            @RequestParam(value = "dates", required = false) String byDate,
+            @RequestParam(value = "dates", required = false) String date,
             @ApiParam(value = "Get ScoreboardResponse by week")
-            @RequestParam(value = "week", required = false) String byWeek){
-        return nflService.getScoreboard(byDate, byWeek);
+            @RequestParam(value = "week", required = false) String week){
+        return nflService.getScoreboard(date, week);
     }
 
     @RequestMapping(method = RequestMethod.GET, path = "/playbyplay", produces = "application/json")

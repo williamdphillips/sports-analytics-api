@@ -4,6 +4,7 @@ public class Event {
     String displayClock;
     String displayClockDetail;
     String shortDetail;
+    long period;
     String description;
     Boolean isCompleted;
     String eventId;
@@ -25,6 +26,14 @@ public class Event {
 
     public Play getCurrentPlay() {
         return currentPlay;
+    }
+
+    public long getPeriod() {
+        return period;
+    }
+
+    public void setPeriod(long period) {
+        this.period = period;
     }
 
     public void setCurrentPlay(Play currentPlay) {
