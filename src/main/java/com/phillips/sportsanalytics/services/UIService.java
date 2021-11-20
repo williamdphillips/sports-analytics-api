@@ -41,7 +41,7 @@ public class UIService {
         ArrayList<Event> events = ResponseDecoder.decode(sr);
         ArrayList<Event> newEvents = new ArrayList <>();
 
-        if(weekNumber == null) {
+        if(weekNumber == null || weekNumber.equals(schedule.getCurrentWeekNumber())) {
             weekNumber = String.valueOf(sr.week.number);
             for (Event event : events
             ) {
@@ -63,9 +63,6 @@ public class UIService {
                      newEvents.add(schedule.getWeeks().get(weekNumber).getEvents().stream()
                             .filter(e -> e.getEventId().equals(event.getEventId())).collect(Collectors.toList()).get(0));
                 }
-
-                //WinProbabilityResponse wpr = nflService.getWinProbability(event.getEventId());
-                //ResponseDecoder.updateWinPercentage(wpr, event);
             }
 
             Week week = new Week();
@@ -81,10 +78,15 @@ public class UIService {
         }else{
             for (Event event : events
             ) {
-                OddsResponse or = nflService.getOdds(event.getEventId());
-                ResponseDecoder.updateOdds(or, event);
-                PredictionResponse pr = nflService.getPrediction(event.getEventId());
-                ResponseDecoder.updatePredictions(pr, event);
+                if(!schedule.getWeeks().containsKey(weekNumber) || (schedule.getWeeks().containsKey(weekNumber) && event.getState().equalsIgnoreCase("pre"))){
+                    OddsResponse or = nflService.getOdds(event.getEventId());
+                    ResponseDecoder.updateOdds(or, event);
+                    PredictionResponse pr = nflService.getPrediction(event.getEventId());
+                    ResponseDecoder.updatePredictions(pr, event);
+                } else if(schedule.getWeeks().containsKey(weekNumber)){
+                    newEvents.add(schedule.getWeeks().get(weekNumber).getEvents().stream()
+                            .filter(e -> e.getEventId().equals(event.getEventId())).collect(Collectors.toList()).get(0));
+                }
             }
 
             Week week = new Week();
