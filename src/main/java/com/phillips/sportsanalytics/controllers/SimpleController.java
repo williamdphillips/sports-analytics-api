@@ -4,6 +4,7 @@ import com.phillips.sportsanalytics.model.simple.*;
 import com.phillips.sportsanalytics.services.SimpleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -27,8 +28,13 @@ public class SimpleController {
     )
     @GetMapping(path = "/games", produces = "application/json")
     @ApiOperation("${nflcontroller.getcurrentgames}")
-    public List <SimpleGame> getGamesByWeek(@RequestParam(required = false) String week) {
-        return simpleService.getGamesByWeek(week);
+    public List <SimpleGame> getGamesByWeek(
+            @ApiParam(value = "Get ScoreboardResponse by week")
+            @RequestParam(value = "week", required = false) String week,
+            @ApiParam(value = "Season Type | 1 = pre 2 = regular 3 = post")
+            @RequestParam(value = "seasontype", required = false) String seasonType
+    ) {
+        return simpleService.getGamesByWeek(week, seasonType);
     }
 
     @GetMapping(path = "/latestplay", produces = "application/json")
@@ -58,8 +64,12 @@ public class SimpleController {
     )
     @GetMapping(path = "/probabilities", produces = "application/json")
     @ApiOperation("${nflcontroller.getwinprobabilities}")
-    public List<SimpleProbability> getWinProbabilities(@RequestParam(required = false) String week) {
-        return simpleService.getGameProbabilities(week);
+    public List<SimpleProbability> getWinProbabilities(
+            @ApiParam(value = "Get ScoreboardResponse by week")
+            @RequestParam(value = "week", required = false) String week,
+            @ApiParam(value = "Season Type | 1 = pre 2 = regular 3 = post")
+            @RequestParam(value = "seasontype", required = false) String seasonType) {
+        return simpleService.getGameProbabilities(week, seasonType);
     }
 
     @GetMapping(path = "/prediction", produces = "application/json")
@@ -76,8 +86,12 @@ public class SimpleController {
     )
     @GetMapping(path = "/predictions", produces = "application/json")
     @ApiOperation("${nflcontroller.getlatestpredictions}")
-    public List<SimplePrediction> getPredictions(@RequestParam(required = false) String week) {
-        return simpleService.getLatestPredictions(week);
+    public List<SimplePrediction> getPredictions(
+            @ApiParam(value = "Get ScoreboardResponse by week")
+            @RequestParam(value = "week", required = false) String week,
+            @ApiParam(value = "Season Type | 1 = pre 2 = regular 3 = post")
+            @RequestParam(value = "seasontype", required = false) String seasonType) {
+        return simpleService.getLatestPredictions(week, seasonType);
     }
 
     @GetMapping(path = "/odds", produces = "application/json")
@@ -94,8 +108,12 @@ public class SimpleController {
     )
     @GetMapping(path = "/allodds", produces = "application/json")
     @ApiOperation("${nflcontroller.allodds}")
-    public List<SimpleOdds> getAllOdds(@RequestParam(required = false) String week) {
-        return simpleService.getAllOdds(week);
+    public List<SimpleOdds> getAllOdds(
+            @ApiParam(value = "Get ScoreboardResponse by week")
+            @RequestParam(value = "week", required = false) String week,
+            @ApiParam(value = "Season Type | 1 = pre 2 = regular 3 = post")
+            @RequestParam(value = "seasontype", required = false) String seasonType) {
+        return simpleService.getAllOdds(week, seasonType);
     }
 
     @Autowired

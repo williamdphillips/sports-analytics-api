@@ -28,8 +28,10 @@ public class UIController {
     )
     @GetMapping(path = "/games", produces = "application/json")
     @ApiOperation("${uicontroller.games}")
-    public Schedule getAllGames(@RequestParam(required = false) String week) {
-        return uiService.getAllGames(week);
+    public Schedule getAllGames(
+            @RequestParam(required = false) String week,
+            @RequestParam(value = "seasontype", required = false) String seasonType) {
+        return uiService.getAllGames(week, seasonType);
     }
 
     @Autowired

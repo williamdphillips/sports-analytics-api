@@ -35,9 +35,9 @@ public class UIService {
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
     }
 
-    public Schedule getAllGames(String weekNumber){
+    public Schedule getAllGames(String weekNumber, String seasonType){
 
-        ScoreboardResponse sr = nflService.getScoreboard(null, weekNumber);
+        ScoreboardResponse sr = nflService.getScoreboard(null, weekNumber, seasonType);
         ArrayList<Event> events = ResponseDecoder.decode(sr);
         ArrayList<Event> newEvents = new ArrayList <>();
 
@@ -52,7 +52,9 @@ public class UIService {
                     ResponseDecoder.updatePredictions(pr, event);
                     PlayByPlayResponse pbpr = nflService.getPlayByPlay(event.getEventId());
                     ResponseDecoder.updatePlays(pbpr, event);
-                }else if(schedule.getWeeks().containsKey(weekNumber) && event.getState().equalsIgnoreCase("in")) {
+                }else if(schedule.getWeeks().containsKey(weekNumber) && (event.getState().equalsIgnoreCase("in") ||
+                        !event.getState().equalsIgnoreCase(schedule.getWeeks().get(weekNumber).getEvents().stream()
+                                .filter(e -> e.getEventId().equals(event.getEventId())).collect(Collectors.toList()).get(0).getState()))){
                     OddsResponse or = nflService.getOdds(event.getEventId());
                     ResponseDecoder.updateOdds(or, event);
                     PredictionResponse pr = nflService.getPrediction(event.getEventId());

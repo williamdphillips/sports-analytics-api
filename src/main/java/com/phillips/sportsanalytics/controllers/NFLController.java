@@ -46,8 +46,10 @@ public class NFLController {
             " advance parameter.")
             @RequestParam(value = "dates", required = false) String date,
             @ApiParam(value = "Get ScoreboardResponse by week")
-            @RequestParam(value = "week", required = false) String week){
-        return nflService.getScoreboard(date, week);
+            @RequestParam(value = "week", required = false) String week,
+            @ApiParam(value = "Season Type | 1 = pre 2 = regular 3 = post")
+            @RequestParam(value = "seasontype", required = false) String seasonType) {
+        return nflService.getScoreboard(date, week, seasonType);
     }
 
     @RequestMapping(method = RequestMethod.GET, path = "/playbyplay", produces = "application/json")

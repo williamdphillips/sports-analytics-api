@@ -174,8 +174,8 @@ public class NFLService {
      * @param week week of season
      * @return full response from ESPN api
      */
-    public ScoreboardResponse getScoreboard(String dates, String week) {
-        URI uri = URIHelper.createURI(SCOREBOARD_BASE_URL, new String[]{"dates", "week"},new String[]{dates, week});
+    public ScoreboardResponse getScoreboard(String dates, String week, String seasonType) {
+        URI uri = URIHelper.createURI(SCOREBOARD_BASE_URL, new String[]{"dates", "week", "seasontype"},new String[]{dates, week, seasonType});
 
         try {
             Map <String,Object> playerMap = HTTPConnection.doGetRequest(uri.toString());
@@ -188,8 +188,8 @@ public class NFLService {
         }
     }
 
-    public List<SimpleGame> getGamesByWeek(String week){
-        ScoreboardResponse sr = getScoreboard(null, week);
+    public List<SimpleGame> getGamesByWeek(String week, String seasonType){
+        ScoreboardResponse sr = getScoreboard(null, week, seasonType);
 
         List<SimpleGame> simpleGames = new ArrayList <>();
         for (ScoreboardResponse.Event e:sr.events

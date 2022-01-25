@@ -34,8 +34,8 @@ public class SimpleService {
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
     }
 
-    public List<SimpleGame> getGamesByWeek(String week){
-        ScoreboardResponse sr = nflService.getScoreboard(null, week);
+    public List<SimpleGame> getGamesByWeek(String week, String seasonType){
+        ScoreboardResponse sr = nflService.getScoreboard(null, week, seasonType);
 
         List<SimpleGame> simpleGames = new ArrayList <>();
         for (ScoreboardResponse.Event e:sr.events
@@ -105,7 +105,7 @@ public class SimpleService {
     }
 
     public List<SimplePlay> getLatestPlays(){
-        List<SimpleGame> sr = getGamesByWeek(null);
+        List<SimpleGame> sr = getGamesByWeek(null, null);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimplePlay> simplePlays = new ArrayList <>();
@@ -141,8 +141,8 @@ public class SimpleService {
         }catch (Exception e) { return temp;}
     }
 
-    public List<SimpleProbability> getGameProbabilities(String week){
-        List<SimpleGame> sr = getGamesByWeek(week);
+    public List<SimpleProbability> getGameProbabilities(String week, String seasonType){
+        List<SimpleGame> sr = getGamesByWeek(week, seasonType);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimpleProbability> simpleProbabilities = new ArrayList <>();
@@ -204,8 +204,8 @@ public class SimpleService {
         }catch (Exception e) { return temp; }
     }
 
-    public List<SimplePrediction> getLatestPredictions(String week){
-        List<SimpleGame> sr = getGamesByWeek(week);
+    public List<SimplePrediction> getLatestPredictions(String week, String seasonType){
+        List<SimpleGame> sr = getGamesByWeek(week, seasonType);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimplePrediction> simplePredictions = new ArrayList <>();
@@ -244,8 +244,8 @@ public class SimpleService {
         }catch (Exception e) { return temp; }
     }
 
-    public List<SimpleOdds> getAllOdds(String week){
-        List<SimpleGame> sr = getGamesByWeek(week);
+    public List<SimpleOdds> getAllOdds(String week, String seasonType){
+        List<SimpleGame> sr = getGamesByWeek(week, seasonType);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimpleOdds> simpleOdds = new ArrayList <>();
