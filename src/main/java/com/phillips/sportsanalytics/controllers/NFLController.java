@@ -46,9 +46,9 @@ public class NFLController {
             " advance parameter.")
             @RequestParam(value = "dates", required = false) String date,
             @ApiParam(value = "Get ScoreboardResponse by week")
-            @RequestParam(value = "week", required = false) String week,
+            @RequestParam(value = "week", required = false) Long week,
             @ApiParam(value = "Season Type | 1 = pre 2 = regular 3 = post")
-            @RequestParam(value = "seasontype", required = false) String seasonType) {
+            @RequestParam(value = "seasontype", required = false) Long seasonType) {
         return nflService.getScoreboard(date, week, seasonType);
     }
 

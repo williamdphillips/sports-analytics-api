@@ -1,16 +1,26 @@
 package com.phillips.sportsanalytics.model;
 
 import java.time.LocalDate;
-import java.util.HashMap;
+import java.util.*;
 
 public class Schedule {
     private LocalDate date;
-    private String currentWeekNumber;
-    private HashMap <String, Week> weeks;
+    private Long currentWeekNumber;
+    private Long currentSeasonType;
+    private Map <Long, Map <Long, Week>> season;
 
     public Schedule(){
         date = LocalDate.now();
-        weeks = new HashMap <String, Week>();
+        season = new HashMap <>();
+
+    }
+
+    public Long getCurrentSeasonType() {
+        return currentSeasonType;
+    }
+
+    public void setCurrentSeasonType(Long currentSeasonType) {
+        this.currentSeasonType = currentSeasonType;
     }
 
     public LocalDate getDate() {
@@ -21,23 +31,26 @@ public class Schedule {
         this.date = date;
     }
 
-    public String getCurrentWeekNumber() {
+    public Long getCurrentWeekNumber() {
         return currentWeekNumber;
     }
 
-    public void setCurrentWeekNumber(String currentWeekNumber) {
+    public void setCurrentWeekNumber(Long currentWeekNumber) {
         this.currentWeekNumber = currentWeekNumber;
     }
 
-    public HashMap <String, Week> getWeeks() {
-        return weeks;
+    public Map <Long, Map <Long, Week>> getSeason() {
+        return season;
     }
 
-    public void setWeeks(HashMap <String, Week> weeks) {
-        this.weeks = weeks;
+    public void setSeason(Map <Long, Map<Long, Week>> season) {
+        this.season = season;
     }
 
-    public void addWeek(String weekNumber, Week week){
-        this.weeks.put(weekNumber, week);
+    public void addWeek(Long seasonType, Week week){
+        if (!this.season.containsKey(seasonType)) {
+            this.season.put(seasonType, new HashMap <>());
+        }
+        this.season.get(seasonType).put(week.getWeekNumber(), week);
     }
 }

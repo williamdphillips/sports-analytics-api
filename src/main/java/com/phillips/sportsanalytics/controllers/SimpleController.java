@@ -22,36 +22,36 @@ public class SimpleController {
 
     @Caching(
             cacheable = {
-                    @Cacheable(value="static", key = "#root.method + #week", condition = "#week != null"),
+                    @Cacheable(value="static", key = "#root.method + #week.toString() + #seasontype.toString()", condition = "#week != null && #seasontype != null"),
                     @Cacheable(value="games", key = "#root.method", condition = "#week == null")
             }
     )
     @GetMapping(path = "/games", produces = "application/json")
-    @ApiOperation("${nflcontroller.getcurrentgames}")
+    @ApiOperation("${simplecontroller.getgamesbyweek}")
     public List <SimpleGame> getGamesByWeek(
             @ApiParam(value = "Get ScoreboardResponse by week")
-            @RequestParam(value = "week", required = false) String week,
+            @RequestParam(value = "week", required = false) Long week,
             @ApiParam(value = "Season Type | 1 = pre 2 = regular 3 = post")
-            @RequestParam(value = "seasontype", required = false) String seasonType
+            @RequestParam(value = "seasontype", required = false) Long seasonType
     ) {
         return simpleService.getGamesByWeek(week, seasonType);
     }
 
     @GetMapping(path = "/latestplay", produces = "application/json")
-    @ApiOperation("${nflcontroller.getlatestplay}")
+    @ApiOperation("${simplecontroller.getlatestplay}")
     public SimplePlay getLatestPlay(@RequestParam(required = true) String eventid) {
         return simpleService.getLatestPlay(eventid);
     }
 
     @Cacheable(value="plays", key="#root.method")
     @GetMapping(path = "/latestplays", produces = "application/json")
-    @ApiOperation("${nflcontroller.getlatestplays}")
+    @ApiOperation("${simplecontroller.getlatestplays}")
     public List<SimplePlay> getLatestPlays() {
         return simpleService.getLatestPlays();
     }
 
     @GetMapping(path = "/probablity", produces = "application/json")
-    @ApiOperation("${nflcontroller.getwinprobability}")
+    @ApiOperation("${simplecontroller.getwinprobability}")
     public SimpleProbability getWinProbability(@RequestParam(required = true) String eventid) {
         return simpleService.getGameProbability(eventid);
     }
@@ -63,17 +63,17 @@ public class SimpleController {
             }
     )
     @GetMapping(path = "/probabilities", produces = "application/json")
-    @ApiOperation("${nflcontroller.getwinprobabilities}")
+    @ApiOperation("${simplecontroller.getwinprobabilities}")
     public List<SimpleProbability> getWinProbabilities(
             @ApiParam(value = "Get ScoreboardResponse by week")
-            @RequestParam(value = "week", required = false) String week,
+            @RequestParam(value = "week", required = false) Long week,
             @ApiParam(value = "Season Type | 1 = pre 2 = regular 3 = post")
-            @RequestParam(value = "seasontype", required = false) String seasonType) {
+            @RequestParam(value = "seasontype", required = false) Long seasonType) {
         return simpleService.getGameProbabilities(week, seasonType);
     }
 
     @GetMapping(path = "/prediction", produces = "application/json")
-    @ApiOperation("${nflcontroller.getlatestprediction}")
+    @ApiOperation("${simplecontroller.getlatestprediction}")
     public SimplePrediction getPrediction(@RequestParam(required = true) String eventid) {
         return simpleService.getLatestPrediction(eventid);
     }
@@ -85,17 +85,17 @@ public class SimpleController {
             }
     )
     @GetMapping(path = "/predictions", produces = "application/json")
-    @ApiOperation("${nflcontroller.getlatestpredictions}")
+    @ApiOperation("${simplecontroller.getlatestpredictions}")
     public List<SimplePrediction> getPredictions(
             @ApiParam(value = "Get ScoreboardResponse by week")
-            @RequestParam(value = "week", required = false) String week,
+            @RequestParam(value = "week", required = false) Long week,
             @ApiParam(value = "Season Type | 1 = pre 2 = regular 3 = post")
-            @RequestParam(value = "seasontype", required = false) String seasonType) {
+            @RequestParam(value = "seasontype", required = false) Long seasonType) {
         return simpleService.getLatestPredictions(week, seasonType);
     }
 
     @GetMapping(path = "/odds", produces = "application/json")
-    @ApiOperation("${nflcontroller.odds}")
+    @ApiOperation("${simplecontroller.odds}")
     public SimpleOdds getOdds(@RequestParam(required = true) String eventid) {
         return simpleService.getOdds(eventid);
     }
@@ -107,14 +107,16 @@ public class SimpleController {
             }
     )
     @GetMapping(path = "/allodds", produces = "application/json")
-    @ApiOperation("${nflcontroller.allodds}")
+    @ApiOperation("${simplecontroller.allodds}")
     public List<SimpleOdds> getAllOdds(
             @ApiParam(value = "Get ScoreboardResponse by week")
-            @RequestParam(value = "week", required = false) String week,
+            @RequestParam(value = "week", required = false) Long week,
             @ApiParam(value = "Season Type | 1 = pre 2 = regular 3 = post")
-            @RequestParam(value = "seasontype", required = false) String seasonType) {
+            @RequestParam(value = "seasontype", required = false) Long seasonType) {
         return simpleService.getAllOdds(week, seasonType);
     }
+
+
 
     @Autowired
     public void setSimpleService(SimpleService simpleService) {

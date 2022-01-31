@@ -3,15 +3,15 @@ package com.phillips.sportsanalytics.model;
 import java.util.ArrayList;
 
 public class Week {
-    private String weekNumber;
+    private Long weekNumber;
     private String dates;
     private ArrayList <Event> events;
 
-    public String getWeekNumber() {
+    public Long getWeekNumber() {
         return weekNumber;
     }
 
-    public void setWeekNumber(String weekNumber) {
+    public void setWeekNumber(Long weekNumber) {
         this.weekNumber = weekNumber;
     }
 

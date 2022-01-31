@@ -41,9 +41,12 @@ public class ResponseDecoder {
             homeTeam.setShortName(e.competitions[0].competitors[0].team.shortDisplayName);
             homeTeam.setLogoURL(e.competitions[0].competitors[0].team.logo);
             homeTeam.setAbbrev(e.competitions[0].competitors[0].team.abbreviation);
-            homeTeam.setRecord(e.competitions[0].competitors[0].records[0].summary);
-            homeTeam.setWins(e.competitions[0].competitors[0].records[0].summary.split("-")[0]);
-            homeTeam.setLosses(e.competitions[0].competitors[0].records[0].summary.split("-")[1]);
+            if(!homeTeam.getAbbrev().contains("AFC") && !homeTeam.getAbbrev().contains("NFC")){
+                homeTeam.setRecord(e.competitions[0].competitors[0].records[0].summary);
+                homeTeam.setWins(e.competitions[0].competitors[0].records[0].summary.split("-")[0]);
+                homeTeam.setLosses(e.competitions[0].competitors[0].records[0].summary.split("-")[1]);
+            }
+
             tempEvent.setHomeTeam(homeTeam);
 
             Team awayTeam = new Team();
@@ -54,9 +57,12 @@ public class ResponseDecoder {
             awayTeam.setShortName(e.competitions[0].competitors[1].team.shortDisplayName);
             awayTeam.setLogoURL(e.competitions[0].competitors[1].team.logo);
             awayTeam.setAbbrev(e.competitions[0].competitors[1].team.abbreviation);
-            awayTeam.setRecord(e.competitions[0].competitors[1].records[0].summary);
-            awayTeam.setWins(e.competitions[0].competitors[1].records[0].summary.split("-")[0]);
-            awayTeam.setLosses(e.competitions[0].competitors[1].records[0].summary.split("-")[1]);
+            if(!homeTeam.getAbbrev().contains("AFC") && !homeTeam.getAbbrev().contains("NFC")){
+                awayTeam.setRecord(e.competitions[0].competitors[1].records[0].summary);
+                awayTeam.setWins(e.competitions[0].competitors[1].records[0].summary.split("-")[0]);
+                awayTeam.setLosses(e.competitions[0].competitors[1].records[0].summary.split("-")[1]);
+            }
+
             tempEvent.setAwayTeam(awayTeam);
 
             events.add(tempEvent);

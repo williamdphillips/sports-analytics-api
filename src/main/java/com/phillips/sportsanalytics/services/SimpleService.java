@@ -34,7 +34,8 @@ public class SimpleService {
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
     }
 
-    public List<SimpleGame> getGamesByWeek(String week, String seasonType){
+    public List<SimpleGame> getGamesByWeek(Long week, Long seasonType){
+        System.out.println("\ngetGamesByWeek entry\n");
         ScoreboardResponse sr = nflService.getScoreboard(null, week, seasonType);
 
         List<SimpleGame> simpleGames = new ArrayList <>();
@@ -141,7 +142,7 @@ public class SimpleService {
         }catch (Exception e) { return temp;}
     }
 
-    public List<SimpleProbability> getGameProbabilities(String week, String seasonType){
+    public List<SimpleProbability> getGameProbabilities(Long week, Long seasonType){
         List<SimpleGame> sr = getGamesByWeek(week, seasonType);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
@@ -204,7 +205,7 @@ public class SimpleService {
         }catch (Exception e) { return temp; }
     }
 
-    public List<SimplePrediction> getLatestPredictions(String week, String seasonType){
+    public List<SimplePrediction> getLatestPredictions(Long week, Long seasonType){
         List<SimpleGame> sr = getGamesByWeek(week, seasonType);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
@@ -244,7 +245,7 @@ public class SimpleService {
         }catch (Exception e) { return temp; }
     }
 
-    public List<SimpleOdds> getAllOdds(String week, String seasonType){
+    public List<SimpleOdds> getAllOdds(Long week, Long seasonType){
         List<SimpleGame> sr = getGamesByWeek(week, seasonType);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());

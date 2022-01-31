@@ -21,6 +21,22 @@ public class URIHelper {
         return builder.build().toUri();
     }
 
+    public static URI createURI(String host, String[] params, Object[] args){
+
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .newInstance()
+                .scheme("https")
+                .host(host);
+
+        for(int i = 0; i < params.length; i++){
+            if(args[i] != null && !args[i].toString().equalsIgnoreCase("null") && !args[i].toString().isEmpty()){
+                builder = builder.queryParam(params[i], args[i].toString());
+            }
+        }
+
+        return builder.build().toUri();
+    }
+
     public static URI createURI(String host){
 
         UriComponentsBuilder builder = UriComponentsBuilder
