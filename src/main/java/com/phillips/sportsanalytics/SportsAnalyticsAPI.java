@@ -1,7 +1,6 @@
 package com.phillips.sportsanalytics;
 
 import com.google.common.collect.ImmutableList;
-import com.phillips.sportsanalytics.services.NFLService;
 import com.phillips.sportsanalytics.util.HTTPConnection;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,16 +16,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import java.util.Arrays;
-
 @SpringBootApplication
 @EnableCaching
 @EnableScheduling
-public class SpringfoxExampleApplication {
+public class SportsAnalyticsAPI {
 
 	public static void main(String[] args) {
 		HTTPConnection.init();
-		SpringApplication.run(SpringfoxExampleApplication.class, args);
+		SpringApplication.run(SportsAnalyticsAPI.class, args);
 	}
 
 	@Configuration
