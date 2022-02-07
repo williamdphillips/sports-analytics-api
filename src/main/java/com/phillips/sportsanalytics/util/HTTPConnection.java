@@ -19,7 +19,7 @@ public class HTTPConnection {
 
     // code request code here
     public static Map<String,Object> doGetRequest(String url) throws IOException {
-        System.out.println("Request received: " + url);
+        System.out.println("Doing GET Request: " + url);
 
         Request request = new Request.Builder()
                 .url(url)

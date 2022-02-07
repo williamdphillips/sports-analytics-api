@@ -27,6 +27,9 @@ public class UIService {
     @Autowired
     public void setNFLService(NFLService nflService) {
         this.nflService = nflService;
+        ScoreboardResponse sr = nflService.getScoreboard(null, null, null);
+        schedule.setCurrentWeekNumber(sr.week.number);
+        schedule.setCurrentSeasonType(sr.season.type);
     }
 
     public UIService(){
@@ -39,8 +42,6 @@ public class UIService {
     public Schedule getAllGames(Long weekNumber, Long seasonType){
 
         ScoreboardResponse sr = nflService.getScoreboard(null, weekNumber, seasonType);
-        schedule.setCurrentWeekNumber(sr.week.number);
-        schedule.setCurrentSeasonType(sr.season.type);
         ArrayList<Event> events = ResponseDecoder.decode(sr);
         ArrayList<Event> newEvents = new ArrayList <>();
 
