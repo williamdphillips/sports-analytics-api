@@ -36,17 +36,11 @@ public class UIService {
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
     }
 
-    public Map<String, Object> getCurrentSeasonWeek(){
-        ScoreboardResponse sr = nflService.getScoreboard(null, null, null);
-        Map<String, Object> tempMap = new HashMap <>(3);
-        tempMap.put("currentSeasonType", sr.season.type);
-        tempMap.put("currentWeekNumber", sr.week.number);
-        return tempMap;
-    }
-
     public Schedule getAllGames(Long weekNumber, Long seasonType){
 
         ScoreboardResponse sr = nflService.getScoreboard(null, weekNumber, seasonType);
+        schedule.setCurrentWeekNumber(sr.week.number);
+        schedule.setCurrentSeasonType(sr.season.type);
         ArrayList<Event> events = ResponseDecoder.decode(sr);
         ArrayList<Event> newEvents = new ArrayList <>();
 
@@ -85,8 +79,6 @@ public class UIService {
 
             schedule.setDate(LocalDate.now());
             schedule.addWeek(seasonType, week);
-            schedule.setCurrentWeekNumber(weekNumber);
-            schedule.setCurrentSeasonType(seasonType);
 
         }else{
             //In this scenario, week and seasonType will be supplied

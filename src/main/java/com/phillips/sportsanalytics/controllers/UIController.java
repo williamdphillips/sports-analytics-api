@@ -36,17 +36,6 @@ public class UIController {
         return uiService.getAllGames(week, seasonType);
     }
 
-    @Caching(
-            cacheable = {
-                    @Cacheable(value="static", key = "#root.method"),
-            }
-    )
-    @GetMapping(path = "/current", produces = "application/json")
-    @ApiOperation("${uicontroller.current}")
-    public Map<String, Object> getCurrentSeasonWeek() {
-        return uiService.getCurrentSeasonWeek();
-    }
-
     @Autowired
     public void setUiService(UIService uiService) {
         this.uiService = uiService;
