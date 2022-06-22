@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.phillips.sportsanalytics.util.Utils.ignoringExc;
+
 public class ResponseDecoder {
     public static ArrayList<Event> decode(ScoreboardResponse sr){
         ArrayList <Event> events = new ArrayList <>();
@@ -42,9 +44,9 @@ public class ResponseDecoder {
             homeTeam.setLogoURL(e.competitions[0].competitors[0].team.logo);
             homeTeam.setAbbrev(e.competitions[0].competitors[0].team.abbreviation);
             if(!homeTeam.getAbbrev().contains("AFC") && !homeTeam.getAbbrev().contains("NFC")){
-                homeTeam.setRecord(e.competitions[0].competitors[0].records[0].summary);
-                homeTeam.setWins(e.competitions[0].competitors[0].records[0].summary.split("-")[0]);
-                homeTeam.setLosses(e.competitions[0].competitors[0].records[0].summary.split("-")[1]);
+                ignoringExc(() -> homeTeam.setRecord(e.competitions[0].competitors[0].records[0].summary));
+                ignoringExc(() -> homeTeam.setWins(e.competitions[0].competitors[0].records[0].summary.split("-")[0]));
+                ignoringExc(() -> homeTeam.setLosses(e.competitions[0].competitors[0].records[0].summary.split("-")[1]));
             }
 
             tempEvent.setHomeTeam(homeTeam);
@@ -58,9 +60,9 @@ public class ResponseDecoder {
             awayTeam.setLogoURL(e.competitions[0].competitors[1].team.logo);
             awayTeam.setAbbrev(e.competitions[0].competitors[1].team.abbreviation);
             if(!homeTeam.getAbbrev().contains("AFC") && !homeTeam.getAbbrev().contains("NFC")){
-                awayTeam.setRecord(e.competitions[0].competitors[1].records[0].summary);
-                awayTeam.setWins(e.competitions[0].competitors[1].records[0].summary.split("-")[0]);
-                awayTeam.setLosses(e.competitions[0].competitors[1].records[0].summary.split("-")[1]);
+                ignoringExc(() -> awayTeam.setRecord(e.competitions[0].competitors[1].records[0].summary));
+                ignoringExc(() -> awayTeam.setWins(e.competitions[0].competitors[1].records[0].summary.split("-")[0]));
+                ignoringExc(() -> awayTeam.setLosses(e.competitions[0].competitors[1].records[0].summary.split("-")[1]));
             }
 
             tempEvent.setAwayTeam(awayTeam);

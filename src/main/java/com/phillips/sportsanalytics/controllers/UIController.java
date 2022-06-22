@@ -1,6 +1,6 @@
 package com.phillips.sportsanalytics.controllers;
 
-import com.phillips.sportsanalytics.model.Schedule;
+import com.phillips.sportsanalytics.model.MasterSchedule;
 import com.phillips.sportsanalytics.services.UIService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/nfl/ui")
 @Api(description = "Set of endpoints for UI to retrieve data")
@@ -24,16 +22,17 @@ public class UIController {
 
     @Caching(
             cacheable = {
-                    @Cacheable(value="static", key = "#root.method + #week.toString() + #seasontype.toString()", condition = "#week != null && #seasontype != null"),
+                    @Cacheable(value="static", key = "#root.method + #year.toString() + #week.toString() + #seasontype.toString()", condition = "#year != null && #week != null && #seasontype != null"),
                     @Cacheable(value="games", key = "#root.method", condition = "#week == null")
             }
     )
     @GetMapping(path = "/games", produces = "application/json")
     @ApiOperation("${uicontroller.games}")
-    public Schedule getAllGames(
+    public MasterSchedule getAllGames(
+            @RequestParam(required = false) Long year,
             @RequestParam(required = false) Long week,
             @RequestParam(value = "seasontype", required = false) Long seasonType) {
-        return uiService.getAllGames(week, seasonType);
+        return uiService.getAllGames(year, week, seasonType);
     }
 
     @Autowired
