@@ -4,6 +4,7 @@ import com.phillips.sportsanalytics.repository.PlayByPlayRepository;
 import com.phillips.sportsanalytics.response.playbyplay.PlayByPlayResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 
@@ -14,7 +15,7 @@ public class PlayByPlayService {
 
     public PlayByPlayResponse findPBPByEventId(String eventId) {
         ArrayList<PlayByPlayResponse> pbps = new ArrayList<>();
-        playByPlayRepository.findByEventId(eventId).forEach(pbps::add);
+        playByPlayRepository.findByEventId(eventId).toStream().forEach(pbps::add);
         if(pbps.size() == 1)
             return pbps.get(0);
         else if(pbps.isEmpty())
@@ -25,7 +26,7 @@ public class PlayByPlayService {
         }
     }
 
-    public PlayByPlayResponse savePBP(PlayByPlayResponse pbp){
+    public Mono<PlayByPlayResponse> savePBP(PlayByPlayResponse pbp){
         return playByPlayRepository.save(pbp);
     }
 }

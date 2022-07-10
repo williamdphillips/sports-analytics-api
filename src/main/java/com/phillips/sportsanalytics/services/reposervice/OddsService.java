@@ -4,6 +4,8 @@ import com.phillips.sportsanalytics.repository.OddsRepository;
 import com.phillips.sportsanalytics.response.odds.OddsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+
 import java.util.ArrayList;
 
 @Service
@@ -13,7 +15,7 @@ public class OddsService {
 
     public OddsResponse findOddsByEventId(String eventId) {
         ArrayList<OddsResponse> odds = new ArrayList<>();
-        oddsRepository.findByEventId(eventId).forEach(odds::add);
+        oddsRepository.findByEventId(eventId).toStream().forEach(odds::add);
         if(odds.size() == 1)
             return odds.get(0);
         else if(odds.isEmpty())
@@ -24,7 +26,7 @@ public class OddsService {
         }
     }
 
-    public OddsResponse saveOdds(OddsResponse oddsResponse){
+    public Mono<OddsResponse> saveOdds(OddsResponse oddsResponse){
         return oddsRepository.save(oddsResponse);
     }
 }

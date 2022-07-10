@@ -2,6 +2,7 @@ package com.phillips.sportsanalytics;
 
 import com.azure.cosmos.implementation.guava25.collect.ImmutableList;
 import com.azure.spring.data.cosmos.repository.config.EnableCosmosRepositories;
+import com.azure.spring.data.cosmos.repository.config.EnableReactiveCosmosRepositories;
 import com.phillips.sportsanalytics.util.HTTPConnection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @EnableCaching
 @EnableCosmosRepositories
 @EnableScheduling
+@EnableReactiveCosmosRepositories
 public class SportsAnalyticsAPI {
 	private static final Logger logger = LogManager.getLogger(SportsAnalyticsAPI.class);
 

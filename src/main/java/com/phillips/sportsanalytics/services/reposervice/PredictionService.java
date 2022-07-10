@@ -1,10 +1,10 @@
 package com.phillips.sportsanalytics.services.reposervice;
 
 import com.phillips.sportsanalytics.repository.PredictionRepository;
-import com.phillips.sportsanalytics.response.odds.OddsResponse;
 import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 
@@ -15,7 +15,7 @@ public class PredictionService {
 
     public PredictionResponse findPredictionByEventId(String eventId) {
         ArrayList<PredictionResponse> predictions = new ArrayList<>();
-        predictionRepository.findByEventId(eventId).forEach(predictions::add);
+        predictionRepository.findByEventId(eventId).toStream().forEach(predictions::add);
         if(predictions.size() == 1)
             return predictions.get(0);
         else if(predictions.isEmpty())
@@ -26,7 +26,7 @@ public class PredictionService {
         }
     }
 
-    public PredictionResponse savePrediction(PredictionResponse predictionResponse){
+    public Mono<PredictionResponse> savePrediction(PredictionResponse predictionResponse){
         return predictionRepository.save(predictionResponse);
     }
 }

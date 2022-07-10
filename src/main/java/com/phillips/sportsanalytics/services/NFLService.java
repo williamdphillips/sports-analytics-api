@@ -59,19 +59,6 @@ public class NFLService {
         //mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    public ScheduleResponse getSchedule(){
-        URI uri = URIHelper.createURI(WEEK_WHITELIST_URL);
-
-        try {
-            Map <String,Object> responseMap = HTTPConnection.doGetRequest(uri.toString());
-            return mapper.convertValue(responseMap, ScheduleResponse.class);
-        }catch (Exception e){
-            System.out.println("ERROR");
-            System.out.println(e.getMessage());
-            return null;
-        }
-    }
-
     public OddsResponse getOdds(String eventId, Boolean forceUpdate, Boolean updateRepo){
         if(forceUpdate != null && !forceUpdate) {
             OddsResponse oddsResponse = oddsService.findOddsByEventId(eventId);
@@ -86,9 +73,8 @@ public class NFLService {
             OddsResponse oddsResponse = mapper.convertValue(responseMap, OddsResponse.class);
             oddsResponse.setEventId(eventId);
             if(updateRepo != null && updateRepo)
-                return oddsService.saveOdds(oddsResponse);
-            else
-                return oddsResponse;
+                oddsService.saveOdds(oddsResponse);
+            return oddsResponse;
         }catch (Exception e){
             System.out.println("ERROR");
             System.out.println(e.getMessage());
@@ -110,9 +96,8 @@ public class NFLService {
             PredictionResponse  predictionResponse = mapper.convertValue(responseMap, PredictionResponse.class);
             predictionResponse.setEventId(eventId);
             if(updateRepo != null && updateRepo)
-                return predictionService.savePrediction(predictionResponse);
-            else
-                return predictionResponse;
+                predictionService.savePrediction(predictionResponse);
+            return predictionResponse;
         }catch (Exception e){
             System.out.println("ERROR");
             System.out.println(e.getMessage());
@@ -251,7 +236,7 @@ public class NFLService {
             return currentScoreboard;
 
         if(forceUpdate != null && !forceUpdate) {
-            ScoreboardResponse scoreboard = scoreboardService.findScoreboard(dates, seasonType, week);
+            ScoreboardResponse scoreboard = scoreboardService.findScoreboard(dates, seasonType, week).block();
             if (scoreboard != null)
                 return scoreboard;
         }
@@ -262,9 +247,8 @@ public class NFLService {
             Map <String,Object> playerMap = HTTPConnection.doGetRequest(uri.toString());
             ScoreboardResponse scoreboard = mapper.convertValue(playerMap, ScoreboardResponse.class);
             if(updateRepo != null && updateRepo)
-                return scoreboardService.saveScoreboard(scoreboard);
-            else
-                return scoreboard;
+                scoreboardService.saveScoreboard(scoreboard);
+            return scoreboard;
         }catch (Exception e){
             System.out.println("ERROR");
             System.out.println(e.getMessage());
@@ -284,8 +268,8 @@ public class NFLService {
             PlayByPlayResponse playByPlayResponse = mapper.convertValue(playerMap, PlayByPlayResponse.class);
             playByPlayResponse.setEventId(eventId);
             if(updateRepo != null && updateRepo)
-                return playByPlayService.savePBP(playByPlayResponse);
-            else return playByPlayResponse;
+                playByPlayService.savePBP(playByPlayResponse);
+            return playByPlayResponse;
         }catch (Exception e){
             System.out.println("ERROR");
             System.out.println(e.getMessage());

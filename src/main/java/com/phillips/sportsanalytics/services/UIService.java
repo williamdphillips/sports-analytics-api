@@ -51,7 +51,7 @@ public class UIService {
      * @return Returns all games in an easily digestible format
      */
     public ScheduleInfo getAllGames(Long year, Long weekNumber, Long seasonType){
-        ScoreboardResponse sr = nflService.getScoreboard(year, weekNumber, seasonType, true, false);
+        ScoreboardResponse sr = nflService.getScoreboard(year, weekNumber, seasonType, true, true);
         year = sr.season.year;
         weekNumber = sr.week.number;
         seasonType = sr.season.type;
