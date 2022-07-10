@@ -4,15 +4,20 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phillips.sportsanalytics.constant.Team;
 import com.phillips.sportsanalytics.helper.URIHelper;
-import com.phillips.sportsanalytics.model.simple.SimpleGame;
+import com.phillips.sportsanalytics.model.SeasonInfo;
+import com.phillips.sportsanalytics.response.playbyplay.PlayByPlayResponse;
+import com.phillips.sportsanalytics.services.reposervice.OddsService;
+import com.phillips.sportsanalytics.services.reposervice.PlayByPlayService;
+import com.phillips.sportsanalytics.services.reposervice.PredictionService;
+import com.phillips.sportsanalytics.services.reposervice.ScoreboardService;
 import com.phillips.sportsanalytics.response.*;
 import com.phillips.sportsanalytics.response.odds.OddsResponse;
 import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
 import com.phillips.sportsanalytics.response.week.ScheduleResponse;
 import com.phillips.sportsanalytics.response.winprobability.WinProbabilityResponse;
 import com.phillips.sportsanalytics.util.HTTPConnection;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,9 +25,20 @@ import java.util.stream.Collectors;
 @Service
 public class NFLService {
 
+    @Autowired
+    private ScoreboardService scoreboardService;
+    @Autowired
+    private OddsService oddsService;
+    @Autowired
+    private PredictionService predictionService;
+    @Autowired
+    private PlayByPlayService playByPlayService;
+
+    // The current scoreboard is updated every 15 seconds by the scheduler
+    private ScoreboardResponse currentScoreboard;
     private List<PlayerResponse> playerResponses;
     private List<TeamResponse.Team.Athlete> rosterAthletes;
-    private List<TeamResponse> teamRespons;
+    private List<TeamResponse> teamResponse;
     private final String PLAYER_ID_BASE_URL = "https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes";
     private final String ROSTER_ID_BASE_URL = "site.api.espn.com/apis/site/v2/sports/football/nfl/teams";
     private final String SCOREBOARD_BASE_URL = "site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
@@ -39,6 +55,8 @@ public class NFLService {
         mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+        mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+        //mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
     public ScheduleResponse getSchedule(){
@@ -54,12 +72,23 @@ public class NFLService {
         }
     }
 
-    public OddsResponse getOdds(String eventId){
+    public OddsResponse getOdds(String eventId, Boolean forceUpdate, Boolean updateRepo){
+        if(forceUpdate != null && !forceUpdate) {
+            OddsResponse oddsResponse = oddsService.findOddsByEventId(eventId);
+            if (oddsResponse != null)
+                return oddsResponse;
+        }
+
         URI uri = URIHelper.createURI(ODDS_BASE_URL.replace(":eventid", eventId));
 
         try {
             Map <String,Object> responseMap = HTTPConnection.doGetRequest(uri.toString());
-            return mapper.convertValue(responseMap, OddsResponse.class);
+            OddsResponse oddsResponse = mapper.convertValue(responseMap, OddsResponse.class);
+            oddsResponse.setEventId(eventId);
+            if(updateRepo != null && updateRepo)
+                return oddsService.saveOdds(oddsResponse);
+            else
+                return oddsResponse;
         }catch (Exception e){
             System.out.println("ERROR");
             System.out.println(e.getMessage());
@@ -67,12 +96,23 @@ public class NFLService {
         }
     }
 
-    public PredictionResponse getPrediction(String eventId){
+    public PredictionResponse getPrediction(String eventId, Boolean forceUpdate, Boolean updateRepo){
+        if(forceUpdate != null && !forceUpdate){
+            PredictionResponse predictionResponse = predictionService.findPredictionByEventId(eventId);
+            if(predictionResponse != null)
+                return predictionResponse;
+        }
+
         URI uri = URIHelper.createURI(PREDICTOR_BASE_URL.replace(":eventid", eventId) + "&limit=1000");
 
         try {
             Map <String,Object> responseMap = HTTPConnection.doGetRequest(uri.toString());
-            return mapper.convertValue(responseMap, PredictionResponse.class);
+            PredictionResponse  predictionResponse = mapper.convertValue(responseMap, PredictionResponse.class);
+            predictionResponse.setEventId(eventId);
+            if(updateRepo != null && updateRepo)
+                return predictionService.savePrediction(predictionResponse);
+            else
+                return predictionResponse;
         }catch (Exception e){
             System.out.println("ERROR");
             System.out.println(e.getMessage());
@@ -94,14 +134,14 @@ public class NFLService {
     }
 
     public List<TeamResponse> getAllRosters() {
-        if(teamRespons == null || teamRespons.isEmpty()){
-            teamRespons = new ArrayList <>();
+        if(teamResponse == null || teamResponse.isEmpty()){
+            teamResponse = new ArrayList <>();
             for(int i = 1; i < 35; i++){
-                teamRespons.add(getTeam(i));
+                teamResponse.add(getTeam(i));
             }
         }
 
-        return this.teamRespons;
+        return this.teamResponse;
     }
 
     public TeamResponse getTeam(int id) {
@@ -132,11 +172,11 @@ public class NFLService {
     }
 
     public List<PlayerResponse> getAllPlayers() {
-        if(teamRespons == null || teamRespons.isEmpty()){
+        if(teamResponse == null || teamResponse.isEmpty()){
             getAllRosters();
             playerResponses = new ArrayList <>();
             rosterAthletes = new ArrayList <>();
-            teamRespons.forEach(teamResponse -> rosterAthletes.addAll(Arrays.asList(teamResponse.team.athletes)));
+            teamResponse.forEach(teamResponse -> rosterAthletes.addAll(Arrays.asList(teamResponse.team.athletes)));
             rosterAthletes.forEach(rosterAthlete -> playerResponses.add(getPlayer(rosterAthlete.id)));
         }
 
@@ -168,19 +208,63 @@ public class NFLService {
         }
     }
 
+    public SeasonInfo getCurrentSeasonInfo(){
+        if(currentScoreboard == null)
+            updateScoreboard();
+        SeasonInfo s = new SeasonInfo();
+        s.setYear(currentScoreboard.season.year);
+        s.setSeasonType(currentScoreboard.season.type);
+        s.setWeek(currentScoreboard.week.number);
+
+        return s;
+    }
+
+    protected void updateScoreboard(){
+        URI uri = URIHelper.createURI(SCOREBOARD_BASE_URL, new String[]{"dates", "week", "seasontype"},new Object[]{null, null, null});
+
+        try {
+            Map <String,Object> playerMap = HTTPConnection.doGetRequest(uri.toString());
+            currentScoreboard = mapper.convertValue(playerMap, ScoreboardResponse.class);
+        }catch (Exception e){
+            System.out.println("ERROR");
+            System.out.println(e.getMessage());
+        }
+    }
+
     /**
-     *
+     * Searches for data matching request in repository and if not exists, requests
+     * data directly from ESPN
      * @param dates if not specified, defaults to current week and season type
      * @param week week of season
      * @return full response from ESPN api
      */
-    public ScoreboardResponse getScoreboard(String dates, Long week, Long seasonType) {
+    public ScoreboardResponse getScoreboard(Long dates, Long week, Long seasonType, Boolean forceUpdate, Boolean updateRepo) {
+        SeasonInfo currentSeasonInfo = getCurrentSeasonInfo();
+        if(dates == null)
+            dates = currentSeasonInfo.getYear();
+        if(week == null)
+            week = currentSeasonInfo.getWeek();
+        if(seasonType == null)
+            seasonType = currentSeasonInfo.getSeasonType();
+
+        if(Objects.equals(dates, currentSeasonInfo.getYear()) && Objects.equals(week, currentSeasonInfo.getWeek()) && Objects.equals(seasonType, currentSeasonInfo.getSeasonType()))
+            return currentScoreboard;
+
+        if(forceUpdate != null && !forceUpdate) {
+            ScoreboardResponse scoreboard = scoreboardService.findScoreboard(dates, seasonType, week);
+            if (scoreboard != null)
+                return scoreboard;
+        }
+
         URI uri = URIHelper.createURI(SCOREBOARD_BASE_URL, new String[]{"dates", "week", "seasontype"},new Object[]{dates, week, seasonType});
 
         try {
             Map <String,Object> playerMap = HTTPConnection.doGetRequest(uri.toString());
-            return mapper.convertValue(playerMap, ScoreboardResponse.class);
-
+            ScoreboardResponse scoreboard = mapper.convertValue(playerMap, ScoreboardResponse.class);
+            if(updateRepo != null && updateRepo)
+                return scoreboardService.saveScoreboard(scoreboard);
+            else
+                return scoreboard;
         }catch (Exception e){
             System.out.println("ERROR");
             System.out.println(e.getMessage());
@@ -188,44 +272,20 @@ public class NFLService {
         }
     }
 
-    public List<SimpleGame> getGamesByWeek(Long week, Long seasonType){
-        ScoreboardResponse sr = getScoreboard(null, week, seasonType);
-
-        List<SimpleGame> simpleGames = new ArrayList <>();
-        for (ScoreboardResponse.Event e:sr.events
-             ) {
-            try{
-                SimpleGame tempSimpleGame = new SimpleGame();
-                tempSimpleGame.setHomeTeamDisplayName(e.competitions[0].competitors[0].team.displayName);
-                tempSimpleGame.setHomeTeamScore(e.competitions[0].competitors[0].score);
-                tempSimpleGame.setHomeTeamColor(e.competitions[0].competitors[0].team.color);
-                tempSimpleGame.setHomeTeamShortName(e.competitions[0].competitors[0].team.shortDisplayName);
-                tempSimpleGame.setHomeTeamLogoLoc(e.competitions[0].competitors[0].team.logo);
-
-
-                tempSimpleGame.setDisplayClock(e.competitions[0].status.displayClock);
-                tempSimpleGame.setDisplayClockDetail(e.competitions[0].status.type.detail);
-                tempSimpleGame.setCompleted(e.competitions[0].status.type.completed);
-
-                tempSimpleGame.setAwayTeamDisplayName(e.competitions[0].competitors[1].team.displayName);
-                tempSimpleGame.setAwayTeamScore(e.competitions[0].competitors[1].score);
-                tempSimpleGame.setAwayTeamColor(e.competitions[0].competitors[1].team.color);
-                tempSimpleGame.setAwayTeamShortName(e.competitions[0].competitors[1].team.shortDisplayName);
-                tempSimpleGame.setAwayTeamLogoLoc(e.competitions[0].competitors[1].team.logo);
-
-
-                simpleGames.add(tempSimpleGame);
-            }catch (ArrayIndexOutOfBoundsException ignored) {}
+    public PlayByPlayResponse getPlayByPlay(String eventId, Boolean forceUpdate, Boolean updateRepo) {
+        if(forceUpdate != null && !forceUpdate) {
+            PlayByPlayResponse playByPlayResponse = playByPlayService.findPBPByEventId(eventId);
+            if (playByPlayResponse != null)
+                return playByPlayResponse;
         }
-        return simpleGames;
-    }
-
-    public PlayByPlayResponse getPlayByPlay(String eventId) {
 
         try {
             Map <String,Object> playerMap = HTTPConnection.doGetRequest(PLAY_BY_PLAY_BASE_URL + "?event=" + eventId);
-            return mapper.convertValue(playerMap, PlayByPlayResponse.class);
-
+            PlayByPlayResponse playByPlayResponse = mapper.convertValue(playerMap, PlayByPlayResponse.class);
+            playByPlayResponse.setEventId(eventId);
+            if(updateRepo != null && updateRepo)
+                return playByPlayService.savePBP(playByPlayResponse);
+            else return playByPlayResponse;
         }catch (Exception e){
             System.out.println("ERROR");
             System.out.println(e.getMessage());

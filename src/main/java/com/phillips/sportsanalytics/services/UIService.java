@@ -2,106 +2,114 @@ package com.phillips.sportsanalytics.services;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.phillips.sportsanalytics.helper.DataHelper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.phillips.sportsanalytics.helper.ResponseDecoder;
-import com.phillips.sportsanalytics.model.Event;
-import com.phillips.sportsanalytics.model.MasterSchedule;
-import com.phillips.sportsanalytics.model.Week;
-import com.phillips.sportsanalytics.response.PlayByPlayResponse;
+import com.phillips.sportsanalytics.model.*;
 import com.phillips.sportsanalytics.response.ScoreboardResponse;
 import com.phillips.sportsanalytics.response.odds.OddsResponse;
+import com.phillips.sportsanalytics.response.playbyplay.PlayByPlayResponse;
 import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
+import com.phillips.sportsanalytics.services.reposervice.ScheduleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class UIService {
     private NFLService nflService;
+    private ScheduleService scheduleService;
     private ObjectMapper mapper;
-    private MasterSchedule masterSchedule;
 
     @Autowired
-    public void setNFLService(NFLService nflService) {
+    public void setNFLService(@Qualifier("NFLService") NFLService nflService) {
         this.nflService = nflService;
-        ScoreboardResponse sr = nflService.getScoreboard(null, null, null);
-        masterSchedule.setCurrentYearNumber(sr.season.year);
-        masterSchedule.setCurrentWeekNumber(sr.week.number);
-        masterSchedule.setCurrentSeasonType(sr.season.type);
+    }
+    @Autowired
+    public void setScheduleService(ScheduleService scheduleService) {
+        this.scheduleService = scheduleService;
     }
 
     public UIService(){
         mapper = new ObjectMapper();
-        masterSchedule = new MasterSchedule();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    public MasterSchedule getAllGames(Long year, Long weekNumber, Long seasonType){
+    private SeasonInfo currentSeasonInfo(){
+        return nflService.getCurrentSeasonInfo();
+    }
 
-        ScoreboardResponse sr = nflService.getScoreboard(String.valueOf(year), weekNumber, seasonType);
+    /**
+     * Serves as entrypoint for the UI
+     * @param year
+     * @param weekNumber
+     * @param seasonType
+     * @return Returns all games in an easily digestible format
+     */
+    public ScheduleInfo getAllGames(Long year, Long weekNumber, Long seasonType){
+        ScoreboardResponse sr = nflService.getScoreboard(year, weekNumber, seasonType, true, false);
+        year = sr.season.year;
+        weekNumber = sr.week.number;
+        seasonType = sr.season.type;
         ArrayList<Event> events = ResponseDecoder.decode(sr);
-        ArrayList<Event> newEvents = new ArrayList <>();
+        Schedule schedule = getStoredSchedule(year);
+        boolean weekExists = schedule.getWeek(seasonType, weekNumber) != null;
 
-        //In this scenario, week and seasonType are null and not supplied which will default
-        //to the current week and seasonType per ESPN API docs
-        if(weekNumber == null || (weekNumber.equals(masterSchedule.getCurrentWeekNumber()) && year.equals(masterSchedule.getCurrentYearNumber()))) {
-            year = sr.season.year;
-            weekNumber = sr.week.number;
-            seasonType = sr.season.type;
-            boolean weekExists = DataHelper.containsWeek(masterSchedule, year, seasonType, weekNumber);
+        // If data for the given week already exists in the repo then return that data
+        if(weekExists && events.stream().allMatch(e -> e.getState().equalsIgnoreCase("post")) &&
+                events.size() == schedule.getWeek(seasonType, weekNumber).getEvents().size())
+            return new ScheduleInfo(schedule, currentSeasonInfo());
 
-            for (Event event : events
-            ) {
-                String eventState = event.getState();
-                if(!weekExists ||
-                        eventState.equalsIgnoreCase("in") ||
-                        eventState.equalsIgnoreCase("pre") ||
-                !eventState.equalsIgnoreCase(DataHelper.getEventState(events, event.getEventId()))){
-                    OddsResponse or = nflService.getOdds(event.getEventId());
-                    ResponseDecoder.updateOdds(or, event);
-                    PredictionResponse pr = nflService.getPrediction(event.getEventId());
-                    ResponseDecoder.updatePredictions(pr, event);
-                    PlayByPlayResponse pbpr = nflService.getPlayByPlay(event.getEventId());
-                    ResponseDecoder.updatePlays(pbpr, event);
-                }else {
-                    Week week = masterSchedule.getSchedules().get(year).season.get(seasonType).get(weekNumber);
-                    newEvents.add(week.getEvents().stream().filter(e -> e.getEventId()
-                            .equals(event.getEventId())).collect(Collectors.toList()).get(0));
-                }
+        for (Event event : events
+        ) {
+            String eventState = event.getState();
+            Event matchingEvent = null;
+            if(weekExists) {
+                ArrayList<Event> matchingEvents = (ArrayList<Event>) schedule.getWeek(seasonType, weekNumber).getEvents()
+                        .stream()
+                        .filter(e -> e.getEventId().equalsIgnoreCase(event.getEventId()))
+                        .collect(Collectors.toList());
+                if (matchingEvents.size() == 1)
+                    matchingEvent = matchingEvents.get(0);
             }
+            boolean inGame = eventState.equalsIgnoreCase("in") || eventState.equalsIgnoreCase("pre");
 
-            Week week = new Week();
-            week.setWeekNumber(weekNumber);
-            events.removeIf(e -> newEvents.stream().anyMatch(ne -> e.getEventId().equalsIgnoreCase(ne.getEventId())));
-            events.addAll(newEvents);
-            week.setEvents(events);
-
-            masterSchedule.addWeek(year, seasonType, week);
-
-        }else{
-            //In this scenario, week and seasonType will be supplied
-            boolean weekExists = DataHelper.containsWeek(masterSchedule, year, seasonType, weekNumber);
-            for (Event event : events
-            ) {
-                if(!weekExists || event.getState().equalsIgnoreCase("pre")){
-                    OddsResponse or = nflService.getOdds(event.getEventId());
-                    ResponseDecoder.updateOdds(or, event);
-                    PredictionResponse pr = nflService.getPrediction(event.getEventId());
-                    ResponseDecoder.updatePredictions(pr, event);
-
-                    Week week = new Week();
-                    week.setWeekNumber(weekNumber);
-                    week.setEvents(events);
-
-                    masterSchedule.addWeek(year, seasonType, week);
-                }
+            if(inGame ||
+                matchingEvent == null ||
+                !matchingEvent.getState().equalsIgnoreCase(eventState)
+            ){
+                OddsResponse or = nflService.getOdds(event.getEventId(), true, !inGame);
+                ResponseDecoder.updateOdds(or, event);
+                PredictionResponse pr = nflService.getPrediction(event.getEventId(), true, !inGame);
+                ResponseDecoder.updatePredictions(pr, event);
+                PlayByPlayResponse pbpr = nflService.getPlayByPlay(event.getEventId(), true, !inGame);
+                ResponseDecoder.updatePlays(pbpr, event);
             }
-
         }
-        return masterSchedule;
+        return new ScheduleInfo(addWeekToSchedule(schedule, seasonType, weekNumber, events), currentSeasonInfo());
+    }
+
+    private Schedule addWeekToSchedule(Schedule schedule, Long seasonType, Long weekNumber, ArrayList<Event> events){
+        Week week = new Week();
+        week.setWeekNumber(weekNumber);
+        week.setEvents(events);
+        schedule.putWeek(seasonType, week);
+        if(events.stream().allMatch(e -> e.getState().equalsIgnoreCase("post")))
+            return scheduleService.saveSchedule(schedule);
+        else
+            return schedule;
+    }
+
+    private Schedule getStoredSchedule(Long year){
+        Schedule schedule = scheduleService.findSchedule(year);
+        if(schedule == null){
+            schedule = new Schedule();
+            schedule.setYear(year);
+        }
+        return schedule;
     }
 }

@@ -1,29 +1,44 @@
 package com.phillips.sportsanalytics;
 
-import com.google.common.collect.ImmutableList;
+import com.azure.cosmos.implementation.guava25.collect.ImmutableList;
+import com.azure.spring.data.cosmos.repository.config.EnableCosmosRepositories;
 import com.phillips.sportsanalytics.util.HTTPConnection;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
+
 @SpringBootApplication
 @EnableCaching
+@EnableCosmosRepositories
 @EnableScheduling
 public class SportsAnalyticsAPI {
+	private static final Logger logger = LogManager.getLogger(SportsAnalyticsAPI.class);
 
 	public static void main(String[] args) {
 		HTTPConnection.init();
-		SpringApplication.run(SportsAnalyticsAPI.class, args);
+		final ConfigurableApplicationContext context = SpringApplication.run(SportsAnalyticsAPI.class, args);
+		final AtomicInteger counter = new AtomicInteger(0);
+		logger.info("**************** START: Total Bean Objects: {} ******************", context.getBeanDefinitionCount());
+
+		Arrays.asList(context.getBeanDefinitionNames())
+				.forEach(beanName -> logger.info("{}) Bean Name: {} ", counter.incrementAndGet(), beanName));
+
+		logger.info("**************** END: Total Bean: {} ******************", context.getBeanDefinitionCount());
+
 	}
 
 	@Configuration
@@ -54,12 +69,6 @@ public class SportsAnalyticsAPI {
 			final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 			source.registerCorsConfiguration("/**", configuration);
 			return source;
-		}
-
-		@CacheEvict(allEntries = true, value = {"plays", "games", "static"})
-		@Scheduled(fixedRate = 30000)
-		public void clearCache() {
-			System.out.println("Cache cleared");
 		}
 	}
 }

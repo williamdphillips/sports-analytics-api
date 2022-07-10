@@ -1,9 +1,12 @@
 package com.phillips.sportsanalytics.response;
 
+import com.azure.spring.data.cosmos.core.mapping.Container;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@Container(containerName = "NFL_Scoreboards")
 public final class ScoreboardResponse {
+    public final String id;
     public final League leagues[];
     public final Season season;
     public final Week week;
@@ -15,6 +18,7 @@ public final class ScoreboardResponse {
         this.season = season;
         this.week = week;
         this.events = events;
+        this.id = "Y" + season.year + "S" + season.type + "W" + week;
     }
 
     public static final class League {
