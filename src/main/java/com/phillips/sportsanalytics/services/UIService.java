@@ -98,7 +98,7 @@ public class UIService {
         week.setEvents(events);
         schedule.putWeek(seasonType, week);
         if(events.stream().allMatch(e -> e.getState().equalsIgnoreCase("post")))
-            scheduleService.saveSchedule(schedule);
+            scheduleService.saveSchedule(schedule).subscribe();
         return schedule;
     }
 

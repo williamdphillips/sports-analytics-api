@@ -13,7 +13,6 @@ import com.phillips.sportsanalytics.services.reposervice.ScoreboardService;
 import com.phillips.sportsanalytics.response.*;
 import com.phillips.sportsanalytics.response.odds.OddsResponse;
 import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
-import com.phillips.sportsanalytics.response.week.ScheduleResponse;
 import com.phillips.sportsanalytics.response.winprobability.WinProbabilityResponse;
 import com.phillips.sportsanalytics.util.HTTPConnection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +72,7 @@ public class NFLService {
             OddsResponse oddsResponse = mapper.convertValue(responseMap, OddsResponse.class);
             oddsResponse.setEventId(eventId);
             if(updateRepo != null && updateRepo)
-                oddsService.saveOdds(oddsResponse);
+                oddsService.saveOdds(oddsResponse).subscribe();
             return oddsResponse;
         }catch (Exception e){
             System.out.println("ERROR");
@@ -96,7 +95,7 @@ public class NFLService {
             PredictionResponse  predictionResponse = mapper.convertValue(responseMap, PredictionResponse.class);
             predictionResponse.setEventId(eventId);
             if(updateRepo != null && updateRepo)
-                predictionService.savePrediction(predictionResponse);
+                predictionService.savePrediction(predictionResponse).subscribe();
             return predictionResponse;
         }catch (Exception e){
             System.out.println("ERROR");
@@ -247,7 +246,7 @@ public class NFLService {
             Map <String,Object> playerMap = HTTPConnection.doGetRequest(uri.toString());
             ScoreboardResponse scoreboard = mapper.convertValue(playerMap, ScoreboardResponse.class);
             if(updateRepo != null && updateRepo)
-                scoreboardService.saveScoreboard(scoreboard);
+                scoreboardService.saveScoreboard(scoreboard).subscribe();
             return scoreboard;
         }catch (Exception e){
             System.out.println("ERROR");
@@ -268,7 +267,7 @@ public class NFLService {
             PlayByPlayResponse playByPlayResponse = mapper.convertValue(playerMap, PlayByPlayResponse.class);
             playByPlayResponse.setEventId(eventId);
             if(updateRepo != null && updateRepo)
-                playByPlayService.savePBP(playByPlayResponse);
+                playByPlayService.savePBP(playByPlayResponse).subscribe();
             return playByPlayResponse;
         }catch (Exception e){
             System.out.println("ERROR");
