@@ -2,16 +2,19 @@ package com.phillips.sportsanalytics.services;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.phillips.sportsanalytics.constant.Team;
 import com.phillips.sportsanalytics.model.simple.*;
-import com.phillips.sportsanalytics.response.PlayByPlayResponse;
 import com.phillips.sportsanalytics.response.ScoreboardResponse;
 import com.phillips.sportsanalytics.response.odds.OddsResponse;
+import com.phillips.sportsanalytics.response.playbyplay.Play;
+import com.phillips.sportsanalytics.response.playbyplay.PlayByPlayResponse;
 import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
 import com.phillips.sportsanalytics.response.prediction.StatisticsItem;
 import com.phillips.sportsanalytics.response.winprobability.ItemsItem;
 import com.phillips.sportsanalytics.response.winprobability.WinProbabilityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -24,7 +27,7 @@ public class SimpleService {
     ObjectMapper mapper;
 
     @Autowired
-    public void setNFLService(NFLService nflService) {
+    public void setNFLService(@Qualifier("NFLService") NFLService nflService) {
         this.nflService = nflService;
     }
 
@@ -32,11 +35,12 @@ public class SimpleService {
         mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    public List<SimpleGame> getGamesByWeek(Long week, Long seasonType){
+    public List<SimpleGame> getGamesByWeek(Long week, Long seasonType, Boolean forceUpdate, Boolean updateRepo){
         System.out.println("\ngetGamesByWeek entry\n");
-        ScoreboardResponse sr = nflService.getScoreboard(null, week, seasonType);
+        ScoreboardResponse sr = nflService.getScoreboard(null, week, seasonType, forceUpdate, updateRepo);
 
         List<SimpleGame> simpleGames = new ArrayList <>();
         for (ScoreboardResponse.Event e:sr.events
@@ -47,13 +51,13 @@ public class SimpleService {
                 tempSimpleGame.setHomeTeamScore(e.competitions[0].competitors[0].score);
                 tempSimpleGame.setHomeTeamColor(e.competitions[0].competitors[0].team.color);
                 tempSimpleGame.setHomeTeamShortName(e.competitions[0].competitors[0].team.shortDisplayName);
-                tempSimpleGame.setHomeTeamLogoLoc(e.competitions[0].competitors[0].team.logo);
+                tempSimpleGame.setHomeTeamLogoURL(e.competitions[0].competitors[0].team.logo);
                 tempSimpleGame.setHomeTeamInitials(e.competitions[0].competitors[0].team.abbreviation);
                 tempSimpleGame.setHomeTeamRecord(e.competitions[0].competitors[0].records[0].summary);
 
                 tempSimpleGame.setDisplayClock(e.competitions[0].status.displayClock);
                 tempSimpleGame.setDisplayClockDetail(e.competitions[0].status.type.detail);
-                tempSimpleGame.setCompleted(e.competitions[0].status.type.completed);
+                tempSimpleGame.setIsCompleted(e.competitions[0].status.type.completed);
                 tempSimpleGame.setShortDetail(e.competitions[0].status.type.shortDetail);
                 tempSimpleGame.setDescription(e.competitions[0].status.type.description);
                 tempSimpleGame.setEventId(e.competitions[0].id);
@@ -64,7 +68,7 @@ public class SimpleService {
                 tempSimpleGame.setAwayTeamScore(e.competitions[0].competitors[1].score);
                 tempSimpleGame.setAwayTeamColor(e.competitions[0].competitors[1].team.color);
                 tempSimpleGame.setAwayTeamShortName(e.competitions[0].competitors[1].team.shortDisplayName);
-                tempSimpleGame.setAwayTeamLogoLoc(e.competitions[0].competitors[1].team.logo);
+                tempSimpleGame.setAwayTeamLogoURL(e.competitions[0].competitors[1].team.logo);
                 tempSimpleGame.setAwayTeamInitials(e.competitions[0].competitors[1].team.abbreviation);
                 tempSimpleGame.setAwayTeamRecord(e.competitions[0].competitors[1].records[0].summary);
 
@@ -77,11 +81,11 @@ public class SimpleService {
         return simpleGames;
     }
 
-    public SimplePlay getLatestPlay(String eventId){
-        PlayByPlayResponse pr = nflService.getPlayByPlay(eventId);
+    public SimplePlay getLatestPlay(String eventId, Boolean forceUpdate, Boolean updateRepo){
+        PlayByPlayResponse pr = nflService.getPlayByPlay(eventId, forceUpdate, updateRepo);
         SimplePlay temp = new SimplePlay();
 
-        PlayByPlayResponse.Drives.Current.Play currentPlay;
+        Play currentPlay;
         temp.setEventId(eventId);
             try{
                 currentPlay = pr.drives.current.plays[pr.drives.current.plays.length - 1];
@@ -105,12 +109,12 @@ public class SimpleService {
             }catch (Exception e) { return temp; }
     }
 
-    public List<SimplePlay> getLatestPlays(){
-        List<SimpleGame> sr = getGamesByWeek(null, null);
+    public List<SimplePlay> getLatestPlays(Boolean forceUpdate, Boolean updateRepo){
+        List<SimpleGame> sr = getGamesByWeek(null, null, forceUpdate, updateRepo);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimplePlay> simplePlays = new ArrayList <>();
-        ids.forEach(id -> simplePlays.add(getLatestPlay(id)));
+        ids.forEach(id -> simplePlays.add(getLatestPlay(id, forceUpdate, updateRepo)));
         return simplePlays;
     }
 
@@ -142,8 +146,8 @@ public class SimpleService {
         }catch (Exception e) { return temp;}
     }
 
-    public List<SimpleProbability> getGameProbabilities(Long week, Long seasonType){
-        List<SimpleGame> sr = getGamesByWeek(week, seasonType);
+    public List<SimpleProbability> getGameProbabilities(Long week, Long seasonType, Boolean forceUpdate, Boolean updateRepo){
+        List<SimpleGame> sr = getGamesByWeek(week, seasonType, forceUpdate, updateRepo);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimpleProbability> simpleProbabilities = new ArrayList <>();
@@ -151,8 +155,8 @@ public class SimpleService {
         return simpleProbabilities;
     }
 
-    public SimplePrediction getLatestPrediction(String eventId){
-        PredictionResponse pr = nflService.getPrediction(eventId);
+    public SimplePrediction getLatestPrediction(String eventId, Boolean forceUpdate, Boolean updateRepo){
+        PredictionResponse pr = nflService.getPrediction(eventId, forceUpdate, updateRepo);
         SimplePrediction temp = new SimplePrediction();
         temp.setEventId(eventId);
         try{
@@ -205,17 +209,17 @@ public class SimpleService {
         }catch (Exception e) { return temp; }
     }
 
-    public List<SimplePrediction> getLatestPredictions(Long week, Long seasonType){
-        List<SimpleGame> sr = getGamesByWeek(week, seasonType);
+    public List<SimplePrediction> getLatestPredictions(Long week, Long seasonType, Boolean forceUpdate, Boolean updateRepo){
+        List<SimpleGame> sr = getGamesByWeek(week, seasonType, forceUpdate, updateRepo);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimplePrediction> simplePredictions = new ArrayList <>();
-        ids.forEach(id -> simplePredictions.add(getLatestPrediction(id)));
+        ids.forEach(id -> simplePredictions.add(getLatestPrediction(id, forceUpdate, updateRepo)));
         return simplePredictions;
     }
 
-    public SimpleOdds getOdds(String eventId){
-        OddsResponse pr = nflService.getOdds(eventId);
+    public SimpleOdds getOdds(String eventId, Boolean forceUpdate, Boolean updateRepo){
+        OddsResponse pr = nflService.getOdds(eventId, forceUpdate, updateRepo);
         SimpleOdds temp = new SimpleOdds();
         temp.setEventId(eventId);
         try{
@@ -245,12 +249,12 @@ public class SimpleService {
         }catch (Exception e) { return temp; }
     }
 
-    public List<SimpleOdds> getAllOdds(Long week, Long seasonType){
-        List<SimpleGame> sr = getGamesByWeek(week, seasonType);
+    public List<SimpleOdds> getAllOdds(Long week, Long seasonType, Boolean forceUpdate, Boolean updateRepo){
+        List<SimpleGame> sr = getGamesByWeek(week, seasonType, forceUpdate, updateRepo);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimpleOdds> simpleOdds = new ArrayList <>();
-        ids.forEach(id -> simpleOdds.add(getOdds(id)));
+        ids.forEach(id -> simpleOdds.add(getOdds(id, forceUpdate, updateRepo)));
         return simpleOdds;
     }
 }

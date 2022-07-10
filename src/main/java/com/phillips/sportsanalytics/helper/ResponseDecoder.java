@@ -3,9 +3,9 @@ package com.phillips.sportsanalytics.helper;
 import com.phillips.sportsanalytics.model.Event;
 import com.phillips.sportsanalytics.model.Play;
 import com.phillips.sportsanalytics.model.Team;
-import com.phillips.sportsanalytics.response.PlayByPlayResponse;
 import com.phillips.sportsanalytics.response.ScoreboardResponse;
 import com.phillips.sportsanalytics.response.odds.OddsResponse;
+import com.phillips.sportsanalytics.response.playbyplay.PlayByPlayResponse;
 import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
 import com.phillips.sportsanalytics.response.prediction.StatisticsItem;
 import com.phillips.sportsanalytics.response.winprobability.ItemsItem;
@@ -27,7 +27,7 @@ public class ResponseDecoder {
             tempEvent.setEventId(e.competitions[0].id);
             tempEvent.setDisplayClock(e.competitions[0].status.displayClock);
             tempEvent.setDisplayClockDetail(e.competitions[0].status.type.detail);
-            tempEvent.setCompleted(e.competitions[0].status.type.completed);
+            tempEvent.setIsCompleted(e.competitions[0].status.type.completed);
             tempEvent.setShortDetail(e.competitions[0].status.type.shortDetail);
             tempEvent.setDescription(e.competitions[0].status.type.description);
             tempEvent.setEventId(e.competitions[0].id);
@@ -100,12 +100,12 @@ public class ResponseDecoder {
     public static void updatePlays(PlayByPlayResponse pr, Event event){
             try{
                 Play play = new Play();
-                PlayByPlayResponse.Drives.Current.Play currentPlay = pr.drives.current.plays[pr.drives.current.plays.length - 1];
+                com.phillips.sportsanalytics.response.playbyplay.Play currentPlay = pr.drives.current.plays[pr.drives.current.plays.length - 1];
                 play.setPlayDescription(currentPlay.text);
                 play.setDown(currentPlay.start.down);
                 play.setDownDistanceShortText(currentPlay.start.shortDownDistanceText);
                 play.setDriveDescription(pr.drives.current.description);
-                play.setScoringPlay(currentPlay.scoringPlay);
+                play.setIsScoringPlay(currentPlay.scoringPlay);
                 play.setDownDistanceText(currentPlay.start.downDistanceText);
                 play.setYardLine(currentPlay.start.yardLine);
                 play.setFirstDownDistance(currentPlay.start.distance);

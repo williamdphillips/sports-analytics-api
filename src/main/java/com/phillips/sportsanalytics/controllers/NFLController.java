@@ -3,22 +3,26 @@ package com.phillips.sportsanalytics.controllers;
 import com.phillips.sportsanalytics.constant.Team;
 import com.phillips.sportsanalytics.response.*;
 import com.phillips.sportsanalytics.response.odds.OddsResponse;
+import com.phillips.sportsanalytics.response.playbyplay.PlayByPlayResponse;
 import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
 import com.phillips.sportsanalytics.response.winprobability.WinProbabilityResponse;
 import com.phillips.sportsanalytics.services.NFLService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/nfl")
-@Api(description = "Set of endpoints for Creating, Retrieving, Updating and Deleting of Players.")
+@Tag(name = "NFLController", description = "Set of endpoints for Creating, Retrieving, Updating and Deleting of Players.")
 public class NFLController {
 
     private NFLService nflService;
 
-    @RequestMapping(method = RequestMethod.GET, path = "/players", produces = "application/json")
-    @ApiOperation("${nflcontroller.getplayer}")
+    @GetMapping(path = "/players", produces = "application/json")
+    @Operation(summary = "${nflcontroller.getplayer}")
     public PlayerResponse getPlayer(@RequestParam(required = false) Integer id,
                                     @RequestParam(required = false) String name) {
         if(id != null)
@@ -27,8 +31,8 @@ public class NFLController {
             return nflService.getPlayer(name);
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/teams", produces = "application/json")
-    @ApiOperation("${nflcontroller.getteam}")
+    @GetMapping(path = "/teams", produces = "application/json")
+    @Operation(summary = "${nflcontroller.getteam}")
     public TeamResponse getRosterByTeamId(@RequestParam(required = false) Integer id,
                                           @RequestParam(required = false) Team team) {
         if(id != null)
@@ -37,47 +41,55 @@ public class NFLController {
             return nflService.getTeam(team);
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/scoreboard", produces = "application/json")
-    @ApiOperation("${nflcontroller.getscoreboard}")
+    @GetMapping(path = "/scoreboard", produces = "application/json")
+    @Operation(summary = "${nflcontroller.getscoreboard}")
     public ScoreboardResponse getScoreboard(
-            @ApiParam(value = "Integer in the form of yyyy, yyyymm, or yyyymmdd to limit" +
-            " output to a particular season, month, or day. If not passed, results default to the current season and" +
-            " season type (pre/reg/post). For example, \"dates=20140630\". Note: Do not use in conjunction with the" +
-            " advance parameter.")
-            @RequestParam(value = "dates", required = false) String date,
-            @ApiParam(value = "Get ScoreboardResponse by week")
+            @Parameter(ref = "Integer in the form of yyyy, yyyymm, or yyyymmdd to limit" +
+                    " output to a particular season, month, or day. If not passed, results default to the current season and" +
+                    " season type (pre/reg/post). For example, \"dates=20140630\". Note: Do not use in conjunction with the" +
+                    " advance parameter.")
+            @RequestParam(value = "dates", required = false) Long date,
+            @Parameter(ref = "Get ScoreboardResponse by week")
             @RequestParam(value = "week", required = false) Long week,
-            @ApiParam(value = "Season Type | 1 = pre 2 = regular 3 = post")
-            @RequestParam(value = "seasontype", required = false) Long seasonType) {
-        return nflService.getScoreboard(date, week, seasonType);
+            @Parameter(ref = "Season Type | 1 = pre 2 = regular 3 = post")
+            @RequestParam(value = "seasontype", required = false) Long seasonType,
+            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
+            @RequestParam(required = false, value = "updaterepo") Boolean updateRepo) {
+        return nflService.getScoreboard(date, week, seasonType, forceUpdate, updateRepo);
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/playbyplay", produces = "application/json")
-    @ApiOperation("${nflcontroller.playbyplay}")
-    public PlayByPlayResponse getPlayByPlay(@RequestParam String eventId){
-        return nflService.getPlayByPlay(eventId);
+    @GetMapping(path = "/playbyplay", produces = "application/json")
+    @Operation(summary = "${nflcontroller.playbyplay}")
+    public PlayByPlayResponse getPlayByPlay(@RequestParam String eventId,
+                                            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
+                                            @RequestParam(required = false, value = "updaterepo") Boolean updateRepo){
+        return nflService.getPlayByPlay(eventId, forceUpdate, updateRepo);
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/winprobability", produces = "application/json")
-    @ApiOperation("${nflcontroller.winprobability}")
+    @GetMapping(path = "/winprobability", produces = "application/json")
+    @Operation(summary = "${nflcontroller.winprobability}")
     public WinProbabilityResponse getWinProbability(@RequestParam String eventId){
         return nflService.getWinProbability(eventId);
     }
 
     @GetMapping(path = "/prediction", produces = "application/json")
-    @ApiOperation("${nflcontroller.prediction}")
-    public PredictionResponse getPrediction(@RequestParam String eventId){
-        return nflService.getPrediction(eventId);
+    @Operation(summary = "${nflcontroller.prediction}")
+    public PredictionResponse getPrediction(@RequestParam String eventId,
+                                            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
+                                            @RequestParam(required = false, value = "updaterepo") Boolean updateRepo){
+        return nflService.getPrediction(eventId, forceUpdate, updateRepo);
     }
 
     @GetMapping(path = "/odds", produces = "application/json")
-    @ApiOperation("${nflcontroller.odds}")
-    public OddsResponse getOdds(@RequestParam String eventId){
-        return nflService.getOdds(eventId);
+    @Operation(summary = "${nflcontroller.odds}")
+    public OddsResponse getOdds(@RequestParam String eventId,
+                                @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
+                                @RequestParam(required = false, value = "updaterepo") Boolean updateRepo){
+        return nflService.getOdds(eventId, forceUpdate, updateRepo);
     }
 
     @Autowired
-    public void setNFLService(NFLService nflService) {
+    public void setNFLService(@Qualifier("NFLService") NFLService nflService) {
         this.nflService = nflService;
     }
 }
