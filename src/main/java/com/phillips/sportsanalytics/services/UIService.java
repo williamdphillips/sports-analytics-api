@@ -67,7 +67,7 @@ public class UIService {
         for (Event event : events
         ) {
             String eventState = event.getState();
-            Event matchingEvent = null;
+            /*Event matchingEvent = null;
             if(weekExists) {
                 ArrayList<Event> matchingEvents = (ArrayList<Event>) schedule.getWeek(seasonType, weekNumber).getEvents()
                         .stream()
@@ -75,20 +75,19 @@ public class UIService {
                         .collect(Collectors.toList());
                 if (matchingEvents.size() == 1)
                     matchingEvent = matchingEvents.get(0);
-            }
+            }*/
             boolean inGame = eventState.equalsIgnoreCase("in") || eventState.equalsIgnoreCase("pre");
 
-            if(inGame ||
+            /*if(inGame ||
                 matchingEvent == null ||
-                !matchingEvent.getState().equalsIgnoreCase(eventState)
-            ){
-                OddsResponse or = nflService.getOdds(event.getEventId(), true, !inGame);
-                ResponseDecoder.updateOdds(or, event);
-                PredictionResponse pr = nflService.getPrediction(event.getEventId(), true, !inGame);
-                ResponseDecoder.updatePredictions(pr, event);
-                PlayByPlayResponse pbpr = nflService.getPlayByPlay(event.getEventId(), true, !inGame);
-                ResponseDecoder.updatePlays(pbpr, event);
-            }
+                !matchingEvent.getState().equalsIgnoreCase(eventState){*/
+            OddsResponse or = nflService.getOdds(event.getEventId(), true, !inGame);
+            ResponseDecoder.updateOdds(or, event);
+            PredictionResponse pr = nflService.getPrediction(event.getEventId(), true, !inGame);
+            ResponseDecoder.updatePredictions(pr, event);
+            PlayByPlayResponse pbpr = nflService.getPlayByPlay(event.getEventId(), true, !inGame);
+            ResponseDecoder.updatePlays(pbpr, event);
+            //}
         }
         return new ScheduleInfo(addWeekToSchedule(schedule, seasonType, weekNumber, events), currentSeasonInfo());
     }
@@ -99,9 +98,8 @@ public class UIService {
         week.setEvents(events);
         schedule.putWeek(seasonType, week);
         if(events.stream().allMatch(e -> e.getState().equalsIgnoreCase("post")))
-            return scheduleService.saveSchedule(schedule);
-        else
-            return schedule;
+            scheduleService.saveSchedule(schedule);
+        return schedule;
     }
 
     private Schedule getStoredSchedule(Long year){

@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @SpringBootApplication
 @EnableCaching
-@EnableCosmosRepositories
 @EnableScheduling
 @EnableReactiveCosmosRepositories
 public class SportsAnalyticsAPI {

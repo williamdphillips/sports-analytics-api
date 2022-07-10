@@ -466,10 +466,8 @@ public final class ScoreboardResponse {
             }
 
             public static final class Note {
-
-                @JsonCreator
-                public Note(){
-                }
+                public String type;
+                public String headline;
             }
 
             public static final class Status {
