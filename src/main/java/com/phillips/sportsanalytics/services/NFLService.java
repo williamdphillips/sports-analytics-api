@@ -3,8 +3,9 @@ package com.phillips.sportsanalytics.services;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phillips.sportsanalytics.constant.Team;
+import com.phillips.sportsanalytics.helper.ResponseDecoder;
 import com.phillips.sportsanalytics.helper.URIHelper;
-import com.phillips.sportsanalytics.model.SeasonInfo;
+import com.phillips.sportsanalytics.model.*;
 import com.phillips.sportsanalytics.response.playbyplay.PlayByPlayResponse;
 import com.phillips.sportsanalytics.services.reposervice.OddsService;
 import com.phillips.sportsanalytics.services.reposervice.PlayByPlayService;
@@ -192,6 +193,10 @@ public class NFLService {
         }
     }
 
+    public ScoreboardResponse getCurrentScoreboard(){
+        return currentScoreboard;
+    }
+
     public SeasonInfo getCurrentSeasonInfo(){
         if(currentScoreboard == null)
             updateScoreboard();
@@ -203,7 +208,7 @@ public class NFLService {
         return s;
     }
 
-    protected void updateScoreboard(){
+    private void updateScoreboard(){
         URI uri = URIHelper.createURI(SCOREBOARD_BASE_URL, new String[]{"dates", "week", "seasontype"},new Object[]{null, null, null});
 
         try {
@@ -231,7 +236,7 @@ public class NFLService {
         if(seasonType == null)
             seasonType = currentSeasonInfo.getSeasonType();
 
-        if(Objects.equals(dates, currentSeasonInfo.getYear()) && Objects.equals(week, currentSeasonInfo.getWeek()) && Objects.equals(seasonType, currentSeasonInfo.getSeasonType()))
+        if(currentSeasonInfo.isCurrentWeek(dates, week, seasonType))
             return currentScoreboard;
 
         if(forceUpdate != null && !forceUpdate) {

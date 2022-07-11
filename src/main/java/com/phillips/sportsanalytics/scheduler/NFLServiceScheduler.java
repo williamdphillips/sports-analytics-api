@@ -8,8 +8,11 @@ import static javax.management.timer.Timer.ONE_MINUTE;
 
 @Component
 public class NFLServiceScheduler extends NFLService{
-    @Scheduled(fixedRate = ONE_MINUTE)
+    /**
+     * Update current scoreboard every 5 minutes
+     */
+    @Scheduled(fixedRate = ONE_MINUTE * 5)
     public void updateCurrentScoreboard(){
-        updateScoreboard();
+        getScoreboard(null, null, null, true, true);
     }
 }

@@ -9,6 +9,8 @@ public class SeasonInfo{
     private Long week;
 
     public Boolean isCurrentWeek(Long year, Long weekNumber, Long seasonType){
+        if(year == null && weekNumber == null && seasonType == null)
+            return true;
         return weekNumber.equals(this.week) &&
                 year.equals(this.year) &&
                 seasonType.equals(this.seasonType);
