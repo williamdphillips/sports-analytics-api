@@ -2,7 +2,7 @@ package com.phillips.sportsanalytics.response.odds;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class PastPerformances{
+public class PastPerformances {
 
 	@JsonProperty("$ref")
 	private String ref;

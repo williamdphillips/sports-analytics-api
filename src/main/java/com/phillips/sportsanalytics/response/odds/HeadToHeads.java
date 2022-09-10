@@ -2,7 +2,7 @@ package com.phillips.sportsanalytics.response.odds;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class HeadToHeads{
+public class HeadToHeads {
 
 	@JsonProperty("$ref")
 	private String ref;

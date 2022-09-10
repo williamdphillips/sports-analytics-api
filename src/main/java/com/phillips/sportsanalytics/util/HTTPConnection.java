@@ -1,11 +1,8 @@
 package com.phillips.sportsanalytics.util;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.squareup.okhttp.*;
 
 public class HTTPConnection {
@@ -18,7 +15,7 @@ public class HTTPConnection {
     }
 
     // code request code here
-    public static Map<String,Object> doGetRequest(String url) throws IOException {
+    public static Map<String,Object> get(String url) throws IOException {
         System.out.println("Doing GET Request: " + url);
 
         Request request = new Request.Builder()

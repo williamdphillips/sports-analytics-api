@@ -13,9 +13,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
-import static javax.management.timer.Timer.ONE_HOUR;
-import static javax.management.timer.Timer.ONE_MINUTE;
+import static javax.management.timer.Timer.*;
 
 @Component
 public class ScheduleServiceScheduler extends ScheduleService {
@@ -24,19 +24,22 @@ public class ScheduleServiceScheduler extends ScheduleService {
     NFLService nflService;
 
     /**
-     * If current week's games are live, provide updates every minute
+     * If any games for the week have started, update all games every ten seconds
      */
-    @Scheduled(fixedRate = ONE_MINUTE)
+    @Scheduled(fixedRate = ONE_SECOND * 10)
     public void updateCurrentSchedule(){
         ScoreboardResponse sr = nflService.getCurrentScoreboard();
         ArrayList<Event> events = ResponseDecoder.decode(sr);
         boolean inGame = events.stream().anyMatch(e -> e.getState().equalsIgnoreCase("in"));
-        if(inGame)
+        boolean mismatch = getStoredSchedule(sr.season.year).getSeason().get(sr.season.type).get(sr.week.number).getEvents()
+                .stream().anyMatch(e -> events.stream().anyMatch(ce -> Objects.equals(ce.getEventId(), e.getEventId())
+                        && !Objects.equals(ce.getState(), e.getState())));
+        if(inGame || mismatch)
             updateGames(null, null, null);
     }
 
     /**
-     * If current week's games are future, provide updates every hour
+     * Updates games for current week if games have not yet started
      */
     @Scheduled(fixedRate = ONE_HOUR)
     public void updateFutureSchedule(){
@@ -48,7 +51,7 @@ public class ScheduleServiceScheduler extends ScheduleService {
     }
 
     /**
-     * If next week's games are future, provide updates every twenty four hours
+     * If next week's games are future, provide updates every twenty-four hours
      */
     @Scheduled(fixedRate = ONE_HOUR * 24)
     public void updateNextWeekSchedule(){

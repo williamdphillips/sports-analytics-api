@@ -3,7 +3,6 @@ package com.phillips.sportsanalytics.services;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phillips.sportsanalytics.constant.Team;
-import com.phillips.sportsanalytics.helper.ResponseDecoder;
 import com.phillips.sportsanalytics.helper.URIHelper;
 import com.phillips.sportsanalytics.model.*;
 import com.phillips.sportsanalytics.response.playbyplay.PlayByPlayResponse;
@@ -46,7 +45,7 @@ public class NFLService {
     private final String WIN_PROBABILITY_BASE_URL = "sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/:eventid/competitions/:eventid/probabilities";
     private final String PREDICTOR_BASE_URL = "sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/:eventid/competitions/:eventid/predictor?lang=en&region=us";
     private final String HEAD_TO_HEAD_BASE_URL = "sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/:eventid/competitions/:eventid/odds/1002/head-to-heads";
-    private final String ODDS_BASE_URL = "sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/:eventid/competitions/:eventid/odds/1002/";
+    private final String ODDS_BASE_URL = "sports.core.api.espn.com/v2/sports/football/leagues/nfl/events/:eventid/competitions/:eventid/odds";
     private final String WEEK_WHITELIST_URL = "sports.core.api.espn.com/v2/sports/football/leagues/nfl/calendar/whitelist";
 
     ObjectMapper mapper;
@@ -69,7 +68,7 @@ public class NFLService {
         URI uri = URIHelper.createURI(ODDS_BASE_URL.replace(":eventid", eventId));
 
         try {
-            Map <String,Object> responseMap = HTTPConnection.doGetRequest(uri.toString());
+            Map <String,Object> responseMap = HTTPConnection.get(uri.toString());
             OddsResponse oddsResponse = mapper.convertValue(responseMap, OddsResponse.class);
             oddsResponse.setEventId(eventId);
             if(updateRepo != null && updateRepo)
@@ -92,7 +91,7 @@ public class NFLService {
         URI uri = URIHelper.createURI(PREDICTOR_BASE_URL.replace(":eventid", eventId) + "&limit=1000");
 
         try {
-            Map <String,Object> responseMap = HTTPConnection.doGetRequest(uri.toString());
+            Map <String,Object> responseMap = HTTPConnection.get(uri.toString());
             PredictionResponse  predictionResponse = mapper.convertValue(responseMap, PredictionResponse.class);
             predictionResponse.setEventId(eventId);
             if(updateRepo != null && updateRepo)
@@ -109,7 +108,7 @@ public class NFLService {
         URI uri = URIHelper.createURI(WIN_PROBABILITY_BASE_URL.replace(":eventid", eventId) + "?limit=1000");
 
         try {
-            Map <String,Object> playerMap = HTTPConnection.doGetRequest(uri.toString());
+            Map <String,Object> playerMap = HTTPConnection.get(uri.toString());
             return mapper.convertValue(playerMap, WinProbabilityResponse.class);
         }catch (Exception e){
             System.out.println("ERROR");
@@ -133,7 +132,7 @@ public class NFLService {
         URI uri = URIHelper.createURI(ROSTER_ID_BASE_URL + "/" + id + "?enable=roster");
 
         try {
-            Map <String,Object> playerMap = HTTPConnection.doGetRequest(uri.toString());
+            Map <String,Object> playerMap = HTTPConnection.get(uri.toString());
             return mapper.convertValue(playerMap, TeamResponse.class);
         }catch (Exception e){
             System.out.println("ERROR");
@@ -147,7 +146,7 @@ public class NFLService {
         URI uri = URIHelper.createURI(ROSTER_ID_BASE_URL + "/" + team.getId() + "?enable=roster");
 
         try {
-            Map <String,Object> playerMap = HTTPConnection.doGetRequest(uri.toString());
+            Map <String,Object> playerMap = HTTPConnection.get(uri.toString());
             return mapper.convertValue(playerMap, TeamResponse.class);
         }catch (Exception e){
             System.out.println("ERROR");
@@ -170,7 +169,7 @@ public class NFLService {
 
     public PlayerResponse getPlayer(int id) {
         try {
-            Map <String, Object> playerMap = HTTPConnection.doGetRequest(PLAYER_ID_BASE_URL + "/" + id);
+            Map <String, Object> playerMap = HTTPConnection.get(PLAYER_ID_BASE_URL + "/" + id);
             return mapper.convertValue(playerMap, PlayerResponse.class);
         }catch (Exception e){
             System.out.println(e.getMessage());
@@ -208,11 +207,11 @@ public class NFLService {
         return s;
     }
 
-    private void updateScoreboard(){
+    public void updateScoreboard(){
         URI uri = URIHelper.createURI(SCOREBOARD_BASE_URL, new String[]{"dates", "week", "seasontype"},new Object[]{null, null, null});
 
         try {
-            Map <String,Object> playerMap = HTTPConnection.doGetRequest(uri.toString());
+            Map <String,Object> playerMap = HTTPConnection.get(uri.toString());
             currentScoreboard = mapper.convertValue(playerMap, ScoreboardResponse.class);
         }catch (Exception e){
             System.out.println("ERROR");
@@ -225,6 +224,9 @@ public class NFLService {
      * data directly from ESPN
      * @param dates if not specified, defaults to current week and season type
      * @param week week of season
+     * @param seasonType 1 for preseason | 2 for regular reason | 3 for postseason
+     * @param forceUpdate if enabled, forces obtaining new data from ESPN
+     * @param updateRepo if enabled, updates repo with new data
      * @return full response from ESPN api
      */
     public ScoreboardResponse getScoreboard(Long dates, Long week, Long seasonType, Boolean forceUpdate, Boolean updateRepo) {
@@ -239,6 +241,7 @@ public class NFLService {
         if(currentSeasonInfo.isCurrentWeek(dates, week, seasonType))
             return currentScoreboard;
 
+        //If forceUpdate is false, return scoreboard from repo
         if(forceUpdate != null && !forceUpdate) {
             ScoreboardResponse scoreboard = scoreboardService.findScoreboard(dates, seasonType, week).block();
             if (scoreboard != null)
@@ -248,7 +251,7 @@ public class NFLService {
         URI uri = URIHelper.createURI(SCOREBOARD_BASE_URL, new String[]{"dates", "week", "seasontype"},new Object[]{dates, week, seasonType});
 
         try {
-            Map <String,Object> playerMap = HTTPConnection.doGetRequest(uri.toString());
+            Map <String,Object> playerMap = HTTPConnection.get(uri.toString());
             ScoreboardResponse scoreboard = mapper.convertValue(playerMap, ScoreboardResponse.class);
             if(updateRepo != null && updateRepo)
                 scoreboardService.saveScoreboard(scoreboard).subscribe();
@@ -268,7 +271,7 @@ public class NFLService {
         }
 
         try {
-            Map <String,Object> playerMap = HTTPConnection.doGetRequest(PLAY_BY_PLAY_BASE_URL + "?event=" + eventId);
+            Map <String,Object> playerMap = HTTPConnection.get(PLAY_BY_PLAY_BASE_URL + "?event=" + eventId);
             PlayByPlayResponse playByPlayResponse = mapper.convertValue(playerMap, PlayByPlayResponse.class);
             playByPlayResponse.setEventId(eventId);
             if(updateRepo != null && updateRepo)

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.phillips.sportsanalytics.constant.Team;
 import com.phillips.sportsanalytics.model.simple.*;
 import com.phillips.sportsanalytics.response.ScoreboardResponse;
+import com.phillips.sportsanalytics.response.odds.EventOdds;
 import com.phillips.sportsanalytics.response.odds.OddsResponse;
 import com.phillips.sportsanalytics.response.playbyplay.Play;
 import com.phillips.sportsanalytics.response.playbyplay.PlayByPlayResponse;
@@ -219,31 +220,32 @@ public class SimpleService {
     }
 
     public SimpleOdds getOdds(String eventId, Boolean forceUpdate, Boolean updateRepo){
-        OddsResponse pr = nflService.getOdds(eventId, forceUpdate, updateRepo);
+        OddsResponse response = nflService.getOdds(eventId, forceUpdate, updateRepo);
+        EventOdds eo = response.getItems().get(0); //
         SimpleOdds temp = new SimpleOdds();
         temp.setEventId(eventId);
         try{
-            temp.setOverOdds(String.valueOf(pr.getOverOdds()));
-            temp.setOverUnder(String.valueOf(pr.getOverUnder()));
-            temp.setSpread(String.valueOf(pr.getSpread()));
-            temp.setDetails(pr.getDetails());
+            temp.setOverOdds(String.valueOf(eo.getOverOdds()));
+            temp.setOverUnder(String.valueOf(eo.getOverUnder()));
+            temp.setSpread(String.valueOf(eo.getSpread()));
+            temp.setDetails(eo.getDetails());
 
-            temp.setAwayTeamAverageScore(String.valueOf(pr.getAwayTeamOdds().getAverageScore()));
-            temp.setAwayTeamFavorite(String.valueOf(pr.getAwayTeamOdds().isFavorite()));
-            temp.setAwayTeamMoneyLine(String.valueOf(pr.getAwayTeamOdds().getMoneyLine()));
-            temp.setAwayTeamSpreadOdds(String.valueOf(pr.getAwayTeamOdds().getSpreadOdds()));
-            temp.setAwayTeamSpreadLosses(String.valueOf(pr.getAwayTeamOdds().getSpreadRecord().getLosses()));
-            temp.setAwayTeamSpreadWins(String.valueOf(pr.getAwayTeamOdds().getSpreadRecord().getWins()));
-            temp.setAwayTeamSpreadSummary(pr.getAwayTeamOdds().getSpreadRecord().getSummary());
+            temp.setAwayTeamAverageScore(String.valueOf(eo.getAwayTeamOdds().getAverageScore()));
+            temp.setAwayTeamFavorite(String.valueOf(eo.getAwayTeamOdds().isFavorite()));
+            temp.setAwayTeamMoneyLine(String.valueOf(eo.getAwayTeamOdds().getMoneyLine()));
+            temp.setAwayTeamSpreadOdds(String.valueOf(eo.getAwayTeamOdds().getSpreadOdds()));
+            temp.setAwayTeamSpreadLosses(String.valueOf(eo.getAwayTeamOdds().getSpreadRecord().getLosses()));
+            temp.setAwayTeamSpreadWins(String.valueOf(eo.getAwayTeamOdds().getSpreadRecord().getWins()));
+            temp.setAwayTeamSpreadSummary(eo.getAwayTeamOdds().getSpreadRecord().getSummary());
 
 
-            temp.setHomeTeamAverageScore(String.valueOf(pr.getHomeTeamOdds().getAverageScore()));
-            temp.setHomeTeamFavorite(String.valueOf(pr.getHomeTeamOdds().isFavorite()));
-            temp.setHomeTeamMoneyLine(String.valueOf(pr.getHomeTeamOdds().getMoneyLine()));
-            temp.setHomeTeamSpreadOdds(String.valueOf(pr.getHomeTeamOdds().getSpreadOdds()));
-            temp.setHomeTeamSpreadLosses(String.valueOf(pr.getHomeTeamOdds().getSpreadRecord().getLosses()));
-            temp.setHomeTeamSpreadWins(String.valueOf(pr.getHomeTeamOdds().getSpreadRecord().getWins()));
-            temp.setHomeTeamSpreadSummary(pr.getHomeTeamOdds().getSpreadRecord().getSummary());
+            temp.setHomeTeamAverageScore(String.valueOf(eo.getHomeTeamOdds().getAverageScore()));
+            temp.setHomeTeamFavorite(String.valueOf(eo.getHomeTeamOdds().isFavorite()));
+            temp.setHomeTeamMoneyLine(String.valueOf(eo.getHomeTeamOdds().getMoneyLine()));
+            temp.setHomeTeamSpreadOdds(String.valueOf(eo.getHomeTeamOdds().getSpreadOdds()));
+            temp.setHomeTeamSpreadLosses(String.valueOf(eo.getHomeTeamOdds().getSpreadRecord().getLosses()));
+            temp.setHomeTeamSpreadWins(String.valueOf(eo.getHomeTeamOdds().getSpreadRecord().getWins()));
+            temp.setHomeTeamSpreadSummary(eo.getHomeTeamOdds().getSpreadRecord().getSummary());
 
             return temp;
         }catch (Exception e) { return temp; }

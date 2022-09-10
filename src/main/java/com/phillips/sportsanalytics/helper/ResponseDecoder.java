@@ -4,6 +4,7 @@ import com.phillips.sportsanalytics.model.Event;
 import com.phillips.sportsanalytics.model.Play;
 import com.phillips.sportsanalytics.model.Team;
 import com.phillips.sportsanalytics.response.ScoreboardResponse;
+import com.phillips.sportsanalytics.response.odds.EventOdds;
 import com.phillips.sportsanalytics.response.odds.OddsResponse;
 import com.phillips.sportsanalytics.response.playbyplay.PlayByPlayResponse;
 import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
@@ -74,26 +75,31 @@ public class ResponseDecoder {
 
     public static void updateOdds(OddsResponse or, Event event){
             try{
-                event.setOverOdds(String.valueOf(or.getOverOdds()));
-                event.setOverUnder(String.valueOf(or.getOverUnder()));
-                event.setSpread(String.valueOf(or.getSpread()));
-                event.setSpreadDetails(or.getDetails());
+                EventOdds eo = or.getItems().stream().filter(e -> e.getProvider().getName().equalsIgnoreCase("DraftKings")).collect(Collectors.toList()).get(0);
+                event.setOverOdds(String.valueOf(eo.getOverOdds()));
+                event.setOverUnder(String.valueOf(eo.getOverUnder()));
+                event.setSpread(String.valueOf(eo.getSpread()));
+                event.setSpreadDetails(eo.getDetails());
 
-                event.getAwayTeam().setAverageScore(or.getAwayTeamOdds().getAverageScore());
-                event.getAwayTeam().setFavorite(or.getAwayTeamOdds().isFavorite());
-                event.getAwayTeam().setMoneyLine(or.getAwayTeamOdds().getMoneyLine());
-                event.getAwayTeam().setSpreadOdds(or.getAwayTeamOdds().getSpreadOdds());
-                event.getAwayTeam().setSpreadLosses(or.getAwayTeamOdds().getSpreadRecord().getLosses());
-                event.getAwayTeam().setSpreadWins(or.getAwayTeamOdds().getSpreadRecord().getWins());
-                event.getAwayTeam().setSpreadSummary(or.getAwayTeamOdds().getSpreadRecord().getSummary());
+                event.getAwayTeam().setAverageScore(eo.getAwayTeamOdds().getAverageScore());
+                event.getAwayTeam().setFavorite(eo.getAwayTeamOdds().isFavorite());
+                event.getAwayTeam().setMoneyLine(eo.getAwayTeamOdds().getMoneyLine());
+                event.getAwayTeam().setSpreadOdds(eo.getAwayTeamOdds().getSpreadOdds());
+                if(eo.getAwayTeamOdds().getSpreadRecord() != null){
+                    event.getAwayTeam().setSpreadLosses(eo.getAwayTeamOdds().getSpreadRecord().getLosses());
+                    event.getAwayTeam().setSpreadWins(eo.getAwayTeamOdds().getSpreadRecord().getWins());
+                    event.getAwayTeam().setSpreadSummary(eo.getAwayTeamOdds().getSpreadRecord().getSummary());
+                }
 
-                event.getHomeTeam().setAverageScore(or.getHomeTeamOdds().getAverageScore());
-                event.getHomeTeam().setFavorite(or.getHomeTeamOdds().isFavorite());
-                event.getHomeTeam().setMoneyLine(or.getHomeTeamOdds().getMoneyLine());
-                event.getHomeTeam().setSpreadOdds(or.getHomeTeamOdds().getSpreadOdds());
-                event.getHomeTeam().setSpreadLosses(or.getHomeTeamOdds().getSpreadRecord().getLosses());
-                event.getHomeTeam().setSpreadWins(or.getHomeTeamOdds().getSpreadRecord().getWins());
-                event.getHomeTeam().setSpreadSummary(or.getHomeTeamOdds().getSpreadRecord().getSummary());
+                event.getHomeTeam().setAverageScore(eo.getHomeTeamOdds().getAverageScore());
+                event.getHomeTeam().setFavorite(eo.getHomeTeamOdds().isFavorite());
+                event.getHomeTeam().setMoneyLine(eo.getHomeTeamOdds().getMoneyLine());
+                event.getHomeTeam().setSpreadOdds(eo.getHomeTeamOdds().getSpreadOdds());
+                if(eo.getHomeTeamOdds().getSpreadRecord() != null){
+                    event.getHomeTeam().setSpreadLosses(eo.getHomeTeamOdds().getSpreadRecord().getLosses());
+                    event.getHomeTeam().setSpreadWins(eo.getHomeTeamOdds().getSpreadRecord().getWins());
+                    event.getHomeTeam().setSpreadSummary(eo.getHomeTeamOdds().getSpreadRecord().getSummary());
+                }
             }catch (Exception ignored) { }
     }
 
