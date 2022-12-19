@@ -4,20 +4,26 @@ import com.phillips.sportsanalytics.repository.PredictionRepository;
 import com.phillips.sportsanalytics.response.prediction.PredictionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class PredictionService {
     @Autowired
     private PredictionRepository predictionRepository;
+    private static final Map<String, PredictionResponse> inMemoryPredictions = new HashMap<>();
 
     public PredictionResponse findPredictionByEventId(String eventId) {
         ArrayList<PredictionResponse> predictions = new ArrayList<>();
-        predictionRepository.findByEventId(eventId).toStream().forEach(predictions::add);
-        if(predictions.size() == 1)
+        PredictionResponse predictionResponse = inMemoryPredictions.get(eventId);
+        if(predictionResponse == null){
+            predictionRepository.findByEventId(eventId).toStream().forEach(predictions::add);
+        }else return predictionResponse;
+
+        if(predictions.size() == 1) {
             return predictions.get(0);
+        }
         else if(predictions.isEmpty())
             return null;
         else{
@@ -26,7 +32,16 @@ public class PredictionService {
         }
     }
 
-    public Mono<PredictionResponse> savePrediction(PredictionResponse predictionResponse){
-        return predictionRepository.save(predictionResponse);
+    /**
+     * Saves prediction to in-memory collection
+     * @param predictionResponse prediction to save
+     */
+    public void savePrediction(PredictionResponse predictionResponse){
+        String eventId = predictionResponse.getEventId();
+        inMemoryPredictions.put(eventId, predictionResponse);
+    }
+
+    public void savePredictionsToRepo(){
+        inMemoryPredictions.values().forEach(p -> predictionRepository.save(p).block());
     }
 }

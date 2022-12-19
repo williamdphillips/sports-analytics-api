@@ -4,6 +4,7 @@ import com.phillips.sportsanalytics.helper.ResponseDecoder;
 import com.phillips.sportsanalytics.model.Event;
 import com.phillips.sportsanalytics.model.Schedule;
 import com.phillips.sportsanalytics.model.SeasonInfo;
+import com.phillips.sportsanalytics.model.Week;
 import com.phillips.sportsanalytics.response.ScoreboardResponse;
 import com.phillips.sportsanalytics.services.NFLService;
 import com.phillips.sportsanalytics.services.reposervice.ScheduleService;
@@ -11,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Objects;
 
 import static javax.management.timer.Timer.*;
@@ -24,14 +25,15 @@ public class ScheduleServiceScheduler extends ScheduleService {
     NFLService nflService;
 
     /**
-     * If any games for the week have started, update all games every ten seconds
+     * If any games for the week have started, update all games at a scheduled interval
      */
-    @Scheduled(fixedRate = ONE_SECOND * 10)
+    @Scheduled(fixedRate = ONE_MINUTE)
     public void updateCurrentSchedule(){
         ScoreboardResponse sr = nflService.getCurrentScoreboard();
         ArrayList<Event> events = ResponseDecoder.decode(sr);
         boolean inGame = events.stream().anyMatch(e -> e.getState().equalsIgnoreCase("in"));
-        boolean mismatch = getStoredSchedule(sr.season.year).getSeason().get(sr.season.type).get(sr.week.number).getEvents()
+        Map<Long, Map<Long, Week>> storedSchedule = getStoredSchedule(sr.season.year).getSeason();
+        boolean mismatch = storedSchedule.get(sr.season.type).get(sr.week.number).getEvents()
                 .stream().anyMatch(e -> events.stream().anyMatch(ce -> Objects.equals(ce.getEventId(), e.getEventId())
                         && !Objects.equals(ce.getState(), e.getState())));
         if(inGame || mismatch)
@@ -56,7 +58,7 @@ public class ScheduleServiceScheduler extends ScheduleService {
     @Scheduled(fixedRate = ONE_HOUR * 24)
     public void updateNextWeekSchedule(){
         SeasonInfo si = nflService.getCurrentSeasonInfo();
-        ScoreboardResponse sr = nflService.getScoreboard(si.getYear(), si.getWeek()+1, si.getSeasonType(), true, false);
+        ScoreboardResponse sr = nflService.getScoreboard(si.getYear(), si.getWeek()+1, si.getSeasonType(), true);
         ArrayList<Event> events = ResponseDecoder.decode(sr);
         boolean futureGame = events.stream().anyMatch(e -> e.getState().equalsIgnoreCase("pre"));
         if(futureGame)
@@ -73,7 +75,7 @@ public class ScheduleServiceScheduler extends ScheduleService {
         SeasonInfo si = nflService.getCurrentSeasonInfo();
         if(si.getWeek() > 4)
             return;
-        ScoreboardResponse sr = nflService.getScoreboard(si.getYear(), si.getWeek(), 1L, true, false);
+        ScoreboardResponse sr = nflService.getScoreboard(si.getYear(), si.getWeek(), 1L, true);
         ArrayList<Event> events = ResponseDecoder.decode(sr);
         boolean futureGame = events.stream().anyMatch(e -> e.getState().equalsIgnoreCase("pre"));
         if(futureGame){

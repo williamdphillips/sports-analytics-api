@@ -39,10 +39,6 @@ public class UIService {
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    private SeasonInfo currentSeasonInfo(){
-        return nflService.getCurrentSeasonInfo();
-    }
-
     /**
      * Serves as entrypoint for the UI
      * @param year
@@ -64,8 +60,8 @@ public class UIService {
 
         // If data for the given week already exists in the repo then return that data
         if(weekExists)
-            return new ScheduleInfo(schedule, currentSeasonInfo());
+            return new ScheduleInfo(schedule, currentSeasonInfo);
         else
-            return new ScheduleInfo(scheduleService.updateGames(year, weekNumber, seasonType), currentSeasonInfo());
+            return new ScheduleInfo(scheduleService.updateGames(year, weekNumber, seasonType), currentSeasonInfo);
     }
 }

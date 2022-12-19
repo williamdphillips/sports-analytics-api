@@ -39,9 +39,9 @@ public class SimpleService {
         mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    public List<SimpleGame> getGamesByWeek(Long week, Long seasonType, Boolean forceUpdate, Boolean updateRepo){
+    public List<SimpleGame> getGamesByWeek(Long week, Long seasonType, Boolean forceUpdate){
         System.out.println("\ngetGamesByWeek entry\n");
-        ScoreboardResponse sr = nflService.getScoreboard(null, week, seasonType, forceUpdate, updateRepo);
+        ScoreboardResponse sr = nflService.getScoreboard(null, week, seasonType, forceUpdate);
 
         List<SimpleGame> simpleGames = new ArrayList <>();
         for (ScoreboardResponse.Event e:sr.events
@@ -82,8 +82,8 @@ public class SimpleService {
         return simpleGames;
     }
 
-    public SimplePlay getLatestPlay(String eventId, Boolean forceUpdate, Boolean updateRepo){
-        PlayByPlayResponse pr = nflService.getPlayByPlay(eventId, forceUpdate, updateRepo);
+    public SimplePlay getLatestPlay(String eventId, Boolean forceUpdate){
+        PlayByPlayResponse pr = nflService.getPlayByPlay(eventId, forceUpdate);
         SimplePlay temp = new SimplePlay();
 
         Play currentPlay;
@@ -110,12 +110,12 @@ public class SimpleService {
             }catch (Exception e) { return temp; }
     }
 
-    public List<SimplePlay> getLatestPlays(Boolean forceUpdate, Boolean updateRepo){
-        List<SimpleGame> sr = getGamesByWeek(null, null, forceUpdate, updateRepo);
+    public List<SimplePlay> getLatestPlays(Boolean forceUpdate){
+        List<SimpleGame> sr = getGamesByWeek(null, null, forceUpdate);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimplePlay> simplePlays = new ArrayList <>();
-        ids.forEach(id -> simplePlays.add(getLatestPlay(id, forceUpdate, updateRepo)));
+        ids.forEach(id -> simplePlays.add(getLatestPlay(id, forceUpdate)));
         return simplePlays;
     }
 
@@ -147,8 +147,8 @@ public class SimpleService {
         }catch (Exception e) { return temp;}
     }
 
-    public List<SimpleProbability> getGameProbabilities(Long week, Long seasonType, Boolean forceUpdate, Boolean updateRepo){
-        List<SimpleGame> sr = getGamesByWeek(week, seasonType, forceUpdate, updateRepo);
+    public List<SimpleProbability> getGameProbabilities(Long week, Long seasonType, Boolean forceUpdate){
+        List<SimpleGame> sr = getGamesByWeek(week, seasonType, forceUpdate);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimpleProbability> simpleProbabilities = new ArrayList <>();
@@ -156,8 +156,8 @@ public class SimpleService {
         return simpleProbabilities;
     }
 
-    public SimplePrediction getLatestPrediction(String eventId, Boolean forceUpdate, Boolean updateRepo){
-        PredictionResponse pr = nflService.getPrediction(eventId, forceUpdate, updateRepo);
+    public SimplePrediction getLatestPrediction(String eventId, Boolean forceUpdate){
+        PredictionResponse pr = nflService.getPrediction(eventId, forceUpdate);
         SimplePrediction temp = new SimplePrediction();
         temp.setEventId(eventId);
         try{
@@ -210,17 +210,17 @@ public class SimpleService {
         }catch (Exception e) { return temp; }
     }
 
-    public List<SimplePrediction> getLatestPredictions(Long week, Long seasonType, Boolean forceUpdate, Boolean updateRepo){
-        List<SimpleGame> sr = getGamesByWeek(week, seasonType, forceUpdate, updateRepo);
+    public List<SimplePrediction> getLatestPredictions(Long week, Long seasonType, Boolean forceUpdate){
+        List<SimpleGame> sr = getGamesByWeek(week, seasonType, forceUpdate);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimplePrediction> simplePredictions = new ArrayList <>();
-        ids.forEach(id -> simplePredictions.add(getLatestPrediction(id, forceUpdate, updateRepo)));
+        ids.forEach(id -> simplePredictions.add(getLatestPrediction(id, forceUpdate)));
         return simplePredictions;
     }
 
-    public SimpleOdds getOdds(String eventId, Boolean forceUpdate, Boolean updateRepo){
-        OddsResponse response = nflService.getOdds(eventId, forceUpdate, updateRepo);
+    public SimpleOdds getOdds(String eventId, Boolean forceUpdate){
+        OddsResponse response = nflService.getOdds(eventId, forceUpdate);
         EventOdds eo = response.getItems().get(0); //
         SimpleOdds temp = new SimpleOdds();
         temp.setEventId(eventId);
@@ -251,12 +251,12 @@ public class SimpleService {
         }catch (Exception e) { return temp; }
     }
 
-    public List<SimpleOdds> getAllOdds(Long week, Long seasonType, Boolean forceUpdate, Boolean updateRepo){
-        List<SimpleGame> sr = getGamesByWeek(week, seasonType, forceUpdate, updateRepo);
+    public List<SimpleOdds> getAllOdds(Long week, Long seasonType, Boolean forceUpdate){
+        List<SimpleGame> sr = getGamesByWeek(week, seasonType, forceUpdate);
 
         ArrayList<String> ids = (ArrayList <String>) sr.stream().map(SimpleGame::getEventId).collect(Collectors.toList());
         ArrayList<SimpleOdds> simpleOdds = new ArrayList <>();
-        ids.forEach(id -> simpleOdds.add(getOdds(id, forceUpdate, updateRepo)));
+        ids.forEach(id -> simpleOdds.add(getOdds(id, forceUpdate)));
         return simpleOdds;
     }
 }

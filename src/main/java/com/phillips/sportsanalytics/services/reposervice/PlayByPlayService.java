@@ -4,20 +4,26 @@ import com.phillips.sportsanalytics.repository.PlayByPlayRepository;
 import com.phillips.sportsanalytics.response.playbyplay.PlayByPlayResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class PlayByPlayService {
     @Autowired
     private PlayByPlayRepository playByPlayRepository;
+    private static final Map<String, PlayByPlayResponse> inMemoryPlayByPlays = new HashMap<>();
 
     public PlayByPlayResponse findPBPByEventId(String eventId) {
         ArrayList<PlayByPlayResponse> pbps = new ArrayList<>();
-        playByPlayRepository.findByEventId(eventId).toStream().forEach(pbps::add);
-        if(pbps.size() == 1)
+        PlayByPlayResponse playByPlayResponse = inMemoryPlayByPlays.get(eventId);
+        if(playByPlayResponse == null){
+            playByPlayRepository.findByEventId(eventId).toStream().forEach(pbps::add);
+        }else return playByPlayResponse;
+
+        if(pbps.size() == 1) {
             return pbps.get(0);
+        }
         else if(pbps.isEmpty())
             return null;
         else{
@@ -26,7 +32,16 @@ public class PlayByPlayService {
         }
     }
 
-    public Mono<PlayByPlayResponse> savePBP(PlayByPlayResponse pbp){
-        return playByPlayRepository.save(pbp);
+    /**
+     * Saves play by play to in-memory collection
+     * @param playByPlayResponse playByPlayResponse to save
+     */
+    public void savePlayByPlay(PlayByPlayResponse playByPlayResponse){
+        String eventId = playByPlayResponse.getEventId();
+        inMemoryPlayByPlays.put(eventId, playByPlayResponse);
+    }
+
+    public void savePlayByPlaysToRepo(){
+        inMemoryPlayByPlays.values().forEach(pbp -> playByPlayRepository.save(pbp).block());
     }
 }

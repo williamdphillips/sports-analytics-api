@@ -58,7 +58,7 @@ public class NFLService {
         //mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    public OddsResponse getOdds(String eventId, Boolean forceUpdate, Boolean updateRepo){
+    public OddsResponse getOdds(String eventId, Boolean forceUpdate){
         if(forceUpdate != null && !forceUpdate) {
             OddsResponse oddsResponse = oddsService.findOddsByEventId(eventId);
             if (oddsResponse != null)
@@ -71,8 +71,7 @@ public class NFLService {
             Map <String,Object> responseMap = HTTPConnection.get(uri.toString());
             OddsResponse oddsResponse = mapper.convertValue(responseMap, OddsResponse.class);
             oddsResponse.setEventId(eventId);
-            if(updateRepo != null && updateRepo)
-                oddsService.saveOdds(oddsResponse).subscribe();
+            oddsService.saveOdds(oddsResponse);
             return oddsResponse;
         }catch (Exception e){
             System.out.println("ERROR");
@@ -81,7 +80,7 @@ public class NFLService {
         }
     }
 
-    public PredictionResponse getPrediction(String eventId, Boolean forceUpdate, Boolean updateRepo){
+    public PredictionResponse getPrediction(String eventId, Boolean forceUpdate){
         if(forceUpdate != null && !forceUpdate){
             PredictionResponse predictionResponse = predictionService.findPredictionByEventId(eventId);
             if(predictionResponse != null)
@@ -94,8 +93,7 @@ public class NFLService {
             Map <String,Object> responseMap = HTTPConnection.get(uri.toString());
             PredictionResponse  predictionResponse = mapper.convertValue(responseMap, PredictionResponse.class);
             predictionResponse.setEventId(eventId);
-            if(updateRepo != null && updateRepo)
-                predictionService.savePrediction(predictionResponse).subscribe();
+            predictionService.savePrediction(predictionResponse);
             return predictionResponse;
         }catch (Exception e){
             System.out.println("ERROR");
@@ -229,7 +227,7 @@ public class NFLService {
      * @param updateRepo if enabled, updates repo with new data
      * @return full response from ESPN api
      */
-    public ScoreboardResponse getScoreboard(Long dates, Long week, Long seasonType, Boolean forceUpdate, Boolean updateRepo) {
+    public ScoreboardResponse getScoreboard(Long dates, Long week, Long seasonType, Boolean forceUpdate) {
         SeasonInfo currentSeasonInfo = getCurrentSeasonInfo();
         if(dates == null)
             dates = currentSeasonInfo.getYear();
@@ -243,7 +241,7 @@ public class NFLService {
 
         //If forceUpdate is false, return scoreboard from repo
         if(forceUpdate != null && !forceUpdate) {
-            ScoreboardResponse scoreboard = scoreboardService.findScoreboard(dates, seasonType, week).block();
+            ScoreboardResponse scoreboard = scoreboardService.findScoreboard(dates, seasonType, week);
             if (scoreboard != null)
                 return scoreboard;
         }
@@ -253,8 +251,7 @@ public class NFLService {
         try {
             Map <String,Object> playerMap = HTTPConnection.get(uri.toString());
             ScoreboardResponse scoreboard = mapper.convertValue(playerMap, ScoreboardResponse.class);
-            if(updateRepo != null && updateRepo)
-                scoreboardService.saveScoreboard(scoreboard).subscribe();
+            scoreboardService.saveScoreboard(scoreboard);
             return scoreboard;
         }catch (Exception e){
             System.out.println("ERROR");
@@ -263,7 +260,7 @@ public class NFLService {
         }
     }
 
-    public PlayByPlayResponse getPlayByPlay(String eventId, Boolean forceUpdate, Boolean updateRepo) {
+    public PlayByPlayResponse getPlayByPlay(String eventId, Boolean forceUpdate) {
         if(forceUpdate != null && !forceUpdate) {
             PlayByPlayResponse playByPlayResponse = playByPlayService.findPBPByEventId(eventId);
             if (playByPlayResponse != null)
@@ -274,8 +271,7 @@ public class NFLService {
             Map <String,Object> playerMap = HTTPConnection.get(PLAY_BY_PLAY_BASE_URL + "?event=" + eventId);
             PlayByPlayResponse playByPlayResponse = mapper.convertValue(playerMap, PlayByPlayResponse.class);
             playByPlayResponse.setEventId(eventId);
-            if(updateRepo != null && updateRepo)
-                playByPlayService.savePBP(playByPlayResponse).subscribe();
+            playByPlayService.savePlayByPlay(playByPlayResponse);
             return playByPlayResponse;
         }catch (Exception e){
             System.out.println("ERROR");

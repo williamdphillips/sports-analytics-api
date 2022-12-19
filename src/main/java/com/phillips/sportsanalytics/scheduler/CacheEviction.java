@@ -16,7 +16,7 @@ import static javax.management.timer.Timer.ONE_SECOND;
 class CacheEviction {
     private static final Logger logger = LogManager.getLogger(CacheEviction.class);
 
-    @Scheduled(fixedRate = ONE_MINUTE * 5)
+    @Scheduled(fixedRate = ONE_MINUTE)
     @CacheEvict(value = { "static", "games", "plays" }, allEntries = true)
     public void clearCache() {
         logger.log(Level.INFO, "Cache cleared");

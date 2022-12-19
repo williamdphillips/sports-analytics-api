@@ -53,17 +53,15 @@ public class NFLController {
             @RequestParam(value = "week", required = false) Long week,
             @Parameter(ref = "Season Type | 1 = pre 2 = regular 3 = post")
             @RequestParam(value = "seasontype", required = false) Long seasonType,
-            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-            @RequestParam(required = false, value = "updaterepo") Boolean updateRepo) {
-        return nflService.getScoreboard(date, week, seasonType, forceUpdate, updateRepo);
+            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate) {
+        return nflService.getScoreboard(date, week, seasonType, forceUpdate);
     }
 
     @GetMapping(path = "/playbyplay", produces = "application/json")
     @Operation(summary = "${nflcontroller.playbyplay}")
     public PlayByPlayResponse getPlayByPlay(@RequestParam String eventId,
-                                            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-                                            @RequestParam(required = false, value = "updaterepo") Boolean updateRepo){
-        return nflService.getPlayByPlay(eventId, forceUpdate, updateRepo);
+                                            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate){
+        return nflService.getPlayByPlay(eventId, forceUpdate);
     }
 
     @GetMapping(path = "/winprobability", produces = "application/json")
@@ -75,17 +73,15 @@ public class NFLController {
     @GetMapping(path = "/prediction", produces = "application/json")
     @Operation(summary = "${nflcontroller.prediction}")
     public PredictionResponse getPrediction(@RequestParam String eventId,
-                                            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-                                            @RequestParam(required = false, value = "updaterepo") Boolean updateRepo){
-        return nflService.getPrediction(eventId, forceUpdate, updateRepo);
+                                            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate){
+        return nflService.getPrediction(eventId, forceUpdate);
     }
 
     @GetMapping(path = "/odds", produces = "application/json")
     @Operation(summary = "${nflcontroller.odds}")
     public OddsResponse getOdds(@RequestParam String eventId,
-                                @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-                                @RequestParam(required = false, value = "updaterepo") Boolean updateRepo){
-        return nflService.getOdds(eventId, forceUpdate, updateRepo);
+                                @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate){
+        return nflService.getOdds(eventId, forceUpdate);
     }
 
     @Autowired

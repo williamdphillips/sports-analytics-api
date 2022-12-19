@@ -33,18 +33,16 @@ public class SimpleController {
             @RequestParam(value = "week", required = false) Long week,
             @Parameter(ref = "Season Type | 1 = pre 2 = regular 3 = post")
             @RequestParam(value = "seasontype", required = false) Long seasonType,
-            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-            @RequestParam(required = false, value = "updaterepo") Boolean updateRepo
+            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate
     ) {
-        return simpleService.getGamesByWeek(week, seasonType, forceUpdate, updateRepo);
+        return simpleService.getGamesByWeek(week, seasonType, forceUpdate);
     }
 
     @GetMapping(path = "/latestplay", produces = "application/json")
     @Operation(summary = "${simplecontroller.getlatestplay}")
     public SimplePlay getLatestPlay(@RequestParam(value = "eventid") String eventId,
-                                    @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-                                    @RequestParam(required = false, value = "updaterepo") Boolean updateRepo) {
-        return simpleService.getLatestPlay(eventId, forceUpdate, updateRepo);
+                                    @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate) {
+        return simpleService.getLatestPlay(eventId, forceUpdate);
     }
 
     @Cacheable(value="plays", key="#root.method")
@@ -52,9 +50,8 @@ public class SimpleController {
     @Operation(summary = "${simplecontroller.getlatestplays}")
 
     public List<SimplePlay> getLatestPlays(
-            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-            @RequestParam(required = false, value = "updaterepo") Boolean updateRepo) {
-        return simpleService.getLatestPlays(forceUpdate, updateRepo);
+            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate) {
+        return simpleService.getLatestPlays(forceUpdate);
     }
 
     @GetMapping(path = "/probablity", produces = "application/json")
@@ -76,17 +73,15 @@ public class SimpleController {
             @RequestParam(value = "week", required = false) Long week,
             @Parameter(ref = "Season Type | 1 = pre 2 = regular 3 = post")
             @RequestParam(value = "seasontype", required = false) Long seasonType,
-            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-            @RequestParam(required = false, value = "updaterepo") Boolean updateRepo) {
-        return simpleService.getGameProbabilities(week, seasonType, forceUpdate, updateRepo);
+            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate) {
+        return simpleService.getGameProbabilities(week, seasonType, forceUpdate);
     }
 
     @GetMapping(path = "/prediction", produces = "application/json")
     @Operation(summary = "${simplecontroller.getlatestprediction}")
     public SimplePrediction getPrediction(@RequestParam(value = "eventid") String eventId,
-                                          @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-                                          @RequestParam(required = false, value = "updaterepo") Boolean updateRepo) {
-        return simpleService.getLatestPrediction(eventId, forceUpdate, updateRepo);
+                                          @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate) {
+        return simpleService.getLatestPrediction(eventId, forceUpdate);
     }
 
     @Caching(
@@ -102,17 +97,15 @@ public class SimpleController {
             @RequestParam(value = "week", required = false) Long week,
             @Parameter(ref = "Season Type | 1 = pre 2 = regular 3 = post")
             @RequestParam(value = "seasontype", required = false) Long seasonType,
-            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-            @RequestParam(required = false, value = "updaterepo") Boolean updateRepo) {
-        return simpleService.getLatestPredictions(week, seasonType, forceUpdate, updateRepo);
+            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate) {
+        return simpleService.getLatestPredictions(week, seasonType, forceUpdate);
     }
 
     @GetMapping(path = "/odds", produces = "application/json")
     @Operation(summary = "${simplecontroller.odds}")
     public SimpleOdds getOdds(@RequestParam(value = "eventid") String eventId,
-                              @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-                              @RequestParam(required = false, value = "updaterepo") Boolean updateRepo) {
-        return simpleService.getOdds(eventId, forceUpdate, updateRepo);
+                              @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate) {
+        return simpleService.getOdds(eventId, forceUpdate);
     }
 
     @Caching(
@@ -128,9 +121,8 @@ public class SimpleController {
             @RequestParam(value = "week", required = false) Long week,
             @Parameter(ref = "Season Type | 1 = pre 2 = regular 3 = post")
             @RequestParam(value = "seasontype", required = false) Long seasonType,
-            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate,
-            @RequestParam(required = false, value = "updaterepo") Boolean updateRepo) {
-        return simpleService.getAllOdds(week, seasonType, forceUpdate, updateRepo);
+            @RequestParam(required = false, value = "forceupdate") Boolean forceUpdate) {
+        return simpleService.getAllOdds(week, seasonType, forceUpdate);
     }
 
 
